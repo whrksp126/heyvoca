@@ -53,8 +53,7 @@ cd ios && pod install && cd ..
 | 파일 경로 | 용도 |
 |-----------|------|
 | `android/app/google-services.json` | Firebase Android 설정 |
-| `ios/GoogleService-Info.plist` | Firebase iOS 설정 |
-| `ios/heyvoca/GoogleService-Info.plist` | Firebase iOS 설정 (Xcode 프로젝트 내) |
+| `ios/heyvoca/GoogleService-Info.plist` | Firebase iOS 설정 |
 
 ### Android 서명 파일
 
