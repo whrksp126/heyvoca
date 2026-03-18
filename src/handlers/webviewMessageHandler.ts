@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Vibration, Platform } from 'react-native';
+import { Alert, Vibration, Platform, StatusBar } from 'react-native';
 import Toast from 'react-native-toast-message';
 // import Tts from 'react-native-tts';
 import { signInWithGoogle, signOutWithGoogle } from '../oauth/googleAuth';
@@ -83,6 +83,10 @@ const handleWebViewMessage = async (
           position: 'bottom',
           visibilityTime: 2000,
         });
+        break;
+
+      case 'setStatusBarStyle':
+        StatusBar.setBarStyle(messageData.style, true);
         break;
 
       case 'closeApp':
