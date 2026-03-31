@@ -19,13 +19,23 @@ statusCodes = SC;
 GoogleSignin.configure({
   webClientId: GOOGLE_CLIENT_WEB_ID,
   iosClientId: GOOGLE_CLIENT_IOS_ID,
-  offlineAccess: false, 
-  scopes: ['profile', 'email'],
+  offlineAccess: false,
+  scopes: [
+    'profile',
+    'email',
+    'https://www.googleapis.com/auth/spreadsheets.readonly', // 시트 읽기 권한 추가
+    'https://www.googleapis.com/auth/drive.metadata.readonly' // 파일 목록 읽기 권한 추가
+  ],
 });
 
 export const signInWithGoogle = async (webViewRef: any) => {
   try {
     await GoogleSignin.hasPlayServices();
+    // 이전 로그인 세션이 남아있으면 정리 (Sign-in in progress 에러 방지)
+    const isSignedIn = GoogleSignin.hasPreviousSignIn();
+    if (isSignedIn) {
+      await GoogleSignin.signOut();
+    }
     const userInfo = await GoogleSignin.signIn();
     console.log('userInfo', userInfo);
     if (webViewRef.current) {
@@ -50,12 +60,50 @@ export const signInWithGoogle = async (webViewRef: any) => {
   }
 };
 
+// 구글 시트 accessToken 획득
+export const getGoogleSheetAccessToken = async (webViewRef: any) => {
+  try {
+    await GoogleSignin.hasPlayServices();
+
+    // 기존 세션을 정리하고 다시 로그인 (새로 추가된 스코프 반영을 위해)
+    const isSignedIn = GoogleSignin.hasPreviousSignIn();
+    if (isSignedIn) {
+      await GoogleSignin.signOut();
+    }
+    await GoogleSignin.signIn();
+
+    // accessToken 획득 (Google API 호출용)
+    const tokens = await GoogleSignin.getTokens();
+    const accessToken = tokens.accessToken;
+
+    if (webViewRef.current) {
+      const data = {
+        type: 'google_sheet_auth_callback',
+        accessToken: accessToken,
+        status: 200,
+      };
+      console.log('구글 시트 accessToken 전송', data);
+      webViewRef.current.postMessage(JSON.stringify(data));
+    }
+  } catch (error: any) {
+    console.error('구글 시트 accessToken 획득 실패:', error);
+    if (webViewRef.current) {
+      const data = {
+        type: 'google_sheet_auth_callback',
+        status: 500,
+        error: error.message || '구글 시트 인증 실패',
+      };
+      webViewRef.current.postMessage(JSON.stringify(data));
+    }
+  }
+};
+
 export const signOutWithGoogle = async (webViewRef: any) => {
   try {
     await GoogleSignin.signOut();
     await clearAppAsyncStorage();
     console.log("사용자 로그아웃 및 데이터 초기화 완료");
-    
+
     // 웹뷰에 로그아웃 완료 메시지 전송
     if (webViewRef.current) {
       const data = {
