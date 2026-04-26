@@ -1,11 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Dimensions } from 'react-native';
+import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform } from 'react-native';
 import WebView from 'react-native-webview';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import OCRScreen from './OCRScreen';
 import { useNavigation } from '../contexts/NavigationContext';
 
 const FRONT_URL = Config.APP_ENV === 'local' && Platform.OS === 'android' ? Config.ANDROID_FRONT_URL : Config.FRONT_URL;
@@ -16,7 +15,7 @@ const HomeScreen = () => {
   const webViewRef = useRef<any>(null);
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
-  const { setWebViewRef, isOCRScreen, setIsOCRScreen, setOcrFilteredWords } = useNavigation();
+  const { setWebViewRef } = useNavigation();
 
   // webViewRef를 NavigationContext에 설정
   useEffect(() => {
@@ -47,6 +46,20 @@ const HomeScreen = () => {
       hideSubscription.remove();
     };
   }, []);
+
+  // 키보드 상태를 WebView로 전달 (웹이 헤더/하단네비 숨김 판단에 사용)
+  useEffect(() => {
+    if (!webViewRef.current) return;
+    const visible = keyboardHeight > 0 ? 'true' : 'false';
+    webViewRef.current.injectJavaScript(`
+      (function() {
+        window.dispatchEvent(new CustomEvent('rn-keyboard', {
+          detail: { height: ${keyboardHeight}, visible: ${visible} }
+        }));
+      })();
+      true;
+    `);
+  }, [keyboardHeight]);
 
   useEffect(() => {
     const backAction = () => {
@@ -96,7 +109,7 @@ const HomeScreen = () => {
           scalesPageToFit={false}
           scrollEnabled={false}
           userAgent={`HeyVoca ${Platform.OS === 'ios' ? 'iOS' : 'Android'}`}
-          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp, setIsOCRScreen, setOcrFilteredWords)}
+          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp)}
           javaScriptEnabled={true}
           webviewDebuggingEnabled={true}
           hideKeyboardAccessoryView={true}
@@ -112,12 +125,6 @@ const HomeScreen = () => {
           style={styles.webview}
         />
       </View>
-      {/* OCR 카메라는 웹뷰 위에 오버레이로 표시 */}
-      {isOCRScreen && (
-        <View style={styles.ocrOverlay}>
-          <OCRScreen />
-        </View>
-      )}
     </View>
   );
 };
@@ -132,14 +139,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'red', // 디버깅용: 빨간색 배경
   },
   webview: { flex: 1 },
-  ocrOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
-  },
 });
 
 export default HomeScreen;

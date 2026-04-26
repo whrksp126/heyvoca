@@ -19,13 +19,19 @@ export const recognizeTextFromImage = async (imagePath: string) => {
       boundingBox: { left: number; top: number; width: number; height: number };
     }[] = [];
 
+    // 영단어 필터: 2자 이상의 알파벳 (단, 한 글자 허용 단어는 별도 화이트리스트)
+    const SINGLE_LETTER_WHITELIST = new Set(['a', 'i', 'A', 'I']);
+    const WORD_RE = /^[A-Za-z]{2,}$/;
+
     result.blocks.forEach((block) => {
       block.lines.forEach((line: TextLine) => {
         line.elements.forEach((element) => {
-          // 영어 단어만 추출
-          if (/^[A-Za-z]+$/.test(element.text)) {
+          const t = element.text;
+          const isLongWord = WORD_RE.test(t);
+          const isWhitelistedSingle = t.length === 1 && SINGLE_LETTER_WHITELIST.has(t);
+          if (isLongWord || isWhitelistedSingle) {
             words.push({
-              text: element.text,
+              text: t,
               boundingBox: element.frame ? {
                 left: element.frame.left,
                 top: element.frame.top,

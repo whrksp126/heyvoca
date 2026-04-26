@@ -6,14 +6,13 @@ import { signInWithGoogle, signOutWithGoogle } from '../oauth/googleAuth';
 import { signInWithApple } from '../oauth/appleAuth';
 import { executePurchase } from '../handlers/iapHandler';
 import { saveCookieToAsyncStorage } from '../utils/asyncStorage';
+import { launchImagePicker } from './imagePickerHandler';
 import messaging from '@react-native-firebase/messaging';
 
 const handleWebViewMessage = async (
   event: { nativeEvent: { data: string } },
   webViewRef: React.RefObject<any>,
   handleExitApp: () => void,
-  setIsOCRScreen: (isOCRScreen: boolean) => void,
-  setOcrFilteredWords: (words: any[]) => void,
 ) => {
   try {
     const messageData = JSON.parse(event.nativeEvent.data);
@@ -93,15 +92,20 @@ const handleWebViewMessage = async (
         handleExitApp();
         break;
 
-      case 'openCamera':
-        setIsOCRScreen(true);
+      case 'openImagePicker': {
+        const source = messageData.props?.source;
+        if (source !== 'camera' && source !== 'library') {
+          webViewRef.current?.postMessage(
+            JSON.stringify({
+              type: 'ocrError',
+              data: { message: '이미지 소스가 지정되지 않았습니다.' },
+            }),
+          );
+          break;
+        }
+        launchImagePicker(source, webViewRef);
         break;
-      case 'filteredWords':
-        // 웹뷰에서 정제된 단어리스트를 받음 (하위 호환성)
-        console.log('✅ OCR 처리 완료된 단어리스트 받음:', messageData.props);
-        // Context에 정제된 단어 저장
-        setOcrFilteredWords(messageData.props || []);
-        break;
+      }
 
       case 'vibrate':
         const { duration, cancel, type: hapticType } = messageData.props || {};
@@ -171,79 +175,6 @@ const handleWebViewMessage = async (
   } catch (error) {
     console.error('Error parsing message:', error);
   }
-  // if (messageData.type === 'launchGoogleAuth') {
-  //   signInWithGoogle(webViewRef);
-  //   return;
-  // }
-
-
-  // if (messageData.type === 'iapPurchase') {
-  //   Alert.alert('iapPurchase');
-  //   return;
-  // }
-  // try {
-  //   const data = JSON.parse(messageData);
-
-  //   switch (data.type) {
-
-
-  //     // case 'iap_purchase':
-  //     //   // 웹에서 인앱결제 요청
-  //     //   const { productId } = data.data;
-  //     //   break;
-
-  //     // case 'loginSuccess':
-  //     //   const { accessToken, refreshToken } = data.data;
-  //     //   console.log('로그인 성공:', { accessToken, refreshToken });
-  //     //   break;
-
-  //     // case 'tts':
-  //     //   Tts.stop();
-  //     //   const language = data.language || 'en-US';
-  //     //   Tts.setDefaultRate(0.45);
-  //     //   Tts.setDefaultPitch(0.9);
-  //     //   Tts.setDefaultLanguage(language);
-  //     //   Tts.speak(data.text);
-  //     //   break;
-
-  //     // case 'isBackable':
-  //     //   if (data.value) {
-  //     //     webViewRef.current.goBack();
-  //     //   } else {
-  //     //     handleExitApp();
-  //     //   }
-  //     //   break;
-
-  //     // case 'log':
-  //     //   console.log('web log :', data.message);
-  //     //   break;
-
-  //     // case 'alert':
-  //     //   Alert.alert('', data.message, [{ text: 'OK' }], { cancelable: false });
-  //     //   break;
-
-  //     // case 'confirm':
-  //     //   Alert.alert('', data.message, [
-  //     //     {
-  //     //       text: data.btns[0].text,
-  //     //       onPress: () =>
-  //     //         webViewRef.current.postMessage(JSON.stringify({ type: "confirm_return", success: true, result: false })),
-  //     //       style: 'cancel',
-  //     //     },
-  //     //     {
-  //     //       text: data.btns[1].text,
-  //     //       onPress: () =>
-  //     //         webViewRef.current.postMessage(JSON.stringify({ type: "confirm_return", success: true, result: true })),
-  //     //     },
-  //     //   ], { cancelable: false });
-  //     //   break;
-
-  //     default:
-  //       console.log('알 수 없는 메시지 타입:', data.type);
-  //   }
-  // } catch (error) {
-  //   console.error('Error parsing message:', error);
-  // }
 };
 
 export default handleWebViewMessage;
