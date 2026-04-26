@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, Vibration, Platform, StatusBar } from 'react-native';
 import Toast from 'react-native-toast-message';
 // import Tts from 'react-native-tts';
-import { signInWithGoogle, signOutWithGoogle } from '../oauth/googleAuth';
+import { signInWithGoogle, signOutWithGoogle, getGoogleSheetAccessToken } from '../oauth/googleAuth';
 import { signInWithApple } from '../oauth/appleAuth';
 import { executePurchase } from '../handlers/iapHandler';
 import { saveCookieToAsyncStorage } from '../utils/asyncStorage';
@@ -48,6 +48,9 @@ const handleWebViewMessage = async (
         break;
       case 'launchGoogleLogout':
         signOutWithGoogle(webViewRef);
+        break;
+      case 'launchGoogleSheetAuth':
+        getGoogleSheetAccessToken(webViewRef);
         break;
       case 'launchAppleAuth':
         signInWithApple(webViewRef);
