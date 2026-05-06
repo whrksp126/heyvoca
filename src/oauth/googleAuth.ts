@@ -16,16 +16,20 @@ const { GoogleSignin: GS, statusCodes: SC } = require('@react-native-google-sign
 GoogleSignin = GS;
 statusCodes = SC;
 
+// Incremental Authorization:
+// 일반 로그인은 'profile', 'email'만 요청 (검증 불필요 → "확인하지 않은 앱" 경고 없음).
+// Google Drive/Sheets 기능 진입 시 getGoogleSheetAccessToken 안에서 addScopes로 추가 요청.
+// (검증 완료 전까지는 그 시점에 경고가 뜨지만, 일반 로그인 흐름은 영향 없음)
+const SHEET_SCOPES = [
+  'https://www.googleapis.com/auth/spreadsheets.readonly',  // 시트 읽기
+  'https://www.googleapis.com/auth/drive.metadata.readonly', // 파일 목록 읽기
+];
+
 GoogleSignin.configure({
   webClientId: GOOGLE_CLIENT_WEB_ID,
   iosClientId: GOOGLE_CLIENT_IOS_ID,
   offlineAccess: false,
-  scopes: [
-    'profile',
-    'email',
-    'https://www.googleapis.com/auth/spreadsheets.readonly', // 시트 읽기 권한 추가
-    'https://www.googleapis.com/auth/drive.metadata.readonly' // 파일 목록 읽기 권한 추가
-  ],
+  scopes: ['profile', 'email'],
 });
 
 export const signInWithGoogle = async (webViewRef: any) => {
@@ -60,17 +64,22 @@ export const signInWithGoogle = async (webViewRef: any) => {
   }
 };
 
-// 구글 시트 accessToken 획득
+// 구글 시트 accessToken 획득 (incremental authorization)
+// 호출 흐름:
+//   1) 로그인 안 됐으면 일반 로그인(profile+email) 먼저
+//   2) addScopes로 sheets/drive 권한만 추가 요청 — 사용자가 이미 동의했으면 동의화면 skip
+//   3) getTokens로 accessToken 획득
 export const getGoogleSheetAccessToken = async (webViewRef: any) => {
   try {
     await GoogleSignin.hasPlayServices();
 
-    // 기존 세션을 정리하고 다시 로그인 (새로 추가된 스코프 반영을 위해)
     const isSignedIn = GoogleSignin.hasPreviousSignIn();
-    if (isSignedIn) {
-      await GoogleSignin.signOut();
+    if (!isSignedIn) {
+      await GoogleSignin.signIn();
     }
-    await GoogleSignin.signIn();
+
+    // sheets/drive 권한 추가 요청 (이미 동의했으면 no-op)
+    await GoogleSignin.addScopes({ scopes: SHEET_SCOPES });
 
     // accessToken 획득 (Google API 호출용)
     const tokens = await GoogleSignin.getTokens();
