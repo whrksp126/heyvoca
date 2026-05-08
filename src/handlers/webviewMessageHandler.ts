@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Vibration, Platform, StatusBar } from 'react-native';
+import { Alert, Vibration, Platform, StatusBar, Linking } from 'react-native';
 import Toast from 'react-native-toast-message';
 // import Tts from 'react-native-tts';
 import { signInWithGoogle, signOutWithGoogle, getGoogleSheetAccessToken } from '../oauth/googleAuth';
@@ -95,6 +95,16 @@ const handleWebViewMessage = async (
         handleExitApp();
         break;
 
+      case 'openUrl': {
+        const url = messageData.props?.url;
+        if (url) {
+          Linking.openURL(url).catch(err =>
+            console.error('URL 열기 실패:', err)
+          );
+        }
+        break;
+      }
+
       case 'openImagePicker': {
         const source = messageData.props?.source;
         if (source !== 'camera' && source !== 'library') {
@@ -110,7 +120,9 @@ const handleWebViewMessage = async (
         break;
       }
 
-      case 'vibrate':
+      case 'vibrate': {
+        const HAPTIC_ENABLED = false; // 햅틱 일시 비활성화 토글: true로 바꾸면 다시 켜짐
+        if (!HAPTIC_ENABLED) break;
         const { duration, cancel, type: hapticType } = messageData.props || {};
 
         if (cancel === true) {
@@ -171,6 +183,7 @@ const handleWebViewMessage = async (
           Vibration.vibrate([0, vibrateDuration], false);
         }
         break;
+      }
 
       default:
         console.log('알 수 없는 메시지 타입:', messageData.type);

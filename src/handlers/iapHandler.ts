@@ -23,42 +23,43 @@ let purchaseErrorSubscription: any = null;
 // 웹뷰의 전역 함수를 호출하여 토큰 갱신
 const requestTokenRefresh = async (): Promise<boolean> => {
   try {
-    console.log('웹의 refreshUserToken() 함수 호출 중...');
-
     if (!currentWebViewRef?.current) {
       console.error('WebView ref가 없습니다');
       return false;
     }
+
+    // 갱신 전 현재 토큰 값 기록 (폴링 비교 기준)
+    const tokenBefore = await getCookieFromAsyncStorage('userAccessToken');
 
     // 웹뷰에서 window.refreshUserToken() 실행
     const script = `
       (async function() {
         try {
           if (typeof window.refreshUserToken === 'function') {
-            const token = await window.refreshUserToken();
-            console.log('토큰 갱신 결과:', token ? '성공' : '실패');
-            return true;
-          } else {
-            console.error('refreshUserToken 함수가 없습니다');
-            return false;
+            await window.refreshUserToken();
           }
-        } catch (error) {
-          console.error('토큰 갱신 오류:', error);
-          return false;
-        }
+        } catch (e) {}
       })();
     `;
-
-    // 웹뷰에서 스크립트 실행 (반환값 없이)
     currentWebViewRef.current.injectJavaScript(script);
 
-    // 웹이 토큰 갱신하고 AsyncStorage에 저장할 시간 대기 (3초)
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // 토큰이 실제로 갱신될 때까지 retry (최대 5회, 500ms 간격 = 최대 2.5초)
+    const MAX_RETRIES = 5;
+    const RETRY_INTERVAL_MS = 500;
 
-    console.log('✅ 토큰 갱신 대기 완료');
-    return true;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL_MS));
+      const tokenAfter = await getCookieFromAsyncStorage('userAccessToken');
+      if (tokenAfter && tokenAfter !== tokenBefore) {
+        return true;
+      }
+    }
+
+    // 5회(2.5초) 후에도 토큰이 바뀌지 않으면 명시적 실패
+    console.error('토큰 갱신 타임아웃: 2.5초 내 갱신 미확인');
+    return false;
   } catch (error) {
-    console.error('❌ 토큰 갱신 오류:', error);
+    console.error('토큰 갱신 오류:', error);
     return false;
   }
 };
