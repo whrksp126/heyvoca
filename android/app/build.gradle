@@ -92,8 +92,8 @@ android {
         applicationId "com.ghmate.heyvoca"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 13
-        versionName "1.0.0"
+        versionCode 16
+        versionName "1.0.1"
     }
 
     signingConfigs {
@@ -143,6 +143,29 @@ android {
         }
         abi {
             enableSplit = true
+        }
+    }
+}
+
+// release 빌드(APK/AAB)에서 필수 env 변수가 BuildConfig에 박혔는지 검증.
+// 누락 시 빌드를 실패시켜 WebView 흰화면 같은 런타임 사고를 사전 차단.
+// (cmux의 playDebug 빌드에는 영향 없음)
+def requiredEnvKeys = ['APP_ENV', 'FRONT_URL', 'BACK_URL']
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        if (variant.buildType.name != 'release') return
+        def envMap = project.ext.has('env') ? project.ext.env : [:]
+        def missing = requiredEnvKeys.findAll { !envMap[it] }
+        if (!missing.isEmpty()) {
+            def task = tasks.findByName("preBuild")
+            if (task != null) {
+                task.doFirst {
+                    throw new GradleException(
+                        "Release 빌드에 필수 env 변수가 누락되었습니다: ${missing}. " +
+                        "ENVFILE=.env 가 지정되었는지, .env 파일에 해당 키가 있는지 확인하세요."
+                    )
+                }
+            }
         }
     }
 }

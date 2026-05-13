@@ -60,6 +60,13 @@
 # Android에는 Apple Auth 네이티브 코드가 없으나 혹시 모를 참조 보호
 -dontwarn com.RNAppleAuthentication.**
 
+# ─── react-native-config: BuildConfig 리플렉션 보호 ──────────────────────────
+# RNCConfigModule이 Class.forName + getDeclaredFields로 환경변수를 읽음.
+# minify 시 BuildConfig 필드가 strip/inline되면 Config.FRONT_URL 등이 undefined가 됨.
+-keep class com.ghmate.heyvoca.BuildConfig { *; }
+-keep class com.lugg.RNCConfig.** { *; }
+-keepclassmembers class **.BuildConfig { *; }
+
 # ─── 기타 공통 ───────────────────────────────────────────────────────────────
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable

@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -6,17 +5,8 @@ import Toast from 'react-native-toast-message';
 import { NavigationProvider } from './src/contexts/NavigationContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
-import Config from 'react-native-config';
 
 import "./global.css";
-
-// DSN이 설정된 경우에만 활성화, local 환경에서는 비활성화
-Sentry.init({
-  dsn: Config.SENTRY_DSN || '',
-  environment: Config.APP_ENV || 'local',
-  enabled: !!Config.SENTRY_DSN && Config.APP_ENV !== 'local',
-  tracesSampleRate: 0.1,
-});
 
 function Main() {
   return (
