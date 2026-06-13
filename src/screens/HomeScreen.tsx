@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text } from 'react-native';
+import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder } from 'react-native';
 import WebView from 'react-native-webview';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
@@ -92,6 +92,25 @@ const HomeScreen = () => {
     BackHandler.exitApp();
   };
 
+  // iOS 좌측 엣지 스와이프(우향) → 웹 onBackPressed(가로) 호출.
+  // 안드로이드는 하드웨어 백 버튼을 쓰므로 불필요. 풀시트(우측 등장)/페이지 백만 처리하고
+  // 바텀시트(하단 등장)는 웹 측에서 가로 스와이프를 무시하도록 분기됨.
+  const edgeSwipeResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_evt, gesture) =>
+        // 좌측 엣지에서 시작한 우향 가로 스와이프만 가로챔 (세로 스크롤/탭은 WebView로 통과)
+        gesture.dx > 12 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+      onPanResponderRelease: (_evt, gesture) => {
+        if (gesture.dx > 60 && Math.abs(gesture.dx) > Math.abs(gesture.dy)) {
+          webViewRef.current?.injectJavaScript(
+            `(function(){ if(window.onBackPressed){ window.onBackPressed({direction:'horizontal'}); } })(); true;`,
+          );
+        }
+      },
+    }),
+  ).current;
+
   console.log('FRONT_URL', FRONT_URL);
 
   console.log('Platform', Platform);
@@ -143,6 +162,10 @@ const HomeScreen = () => {
           `}
           style={styles.webview}
         />
+        {/* iOS 좌측 엣지 스와이프 백 감지 영역 (안드로이드는 하드웨어 백 사용) */}
+        {Platform.OS === 'ios' && (
+          <View style={styles.edgeSwipeZone} {...edgeSwipeResponder.panHandlers} />
+        )}
       </View>
     </View>
   );
@@ -158,6 +181,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'red', // 디버깅용: 빨간색 배경
   },
   webview: { flex: 1 },
+  edgeSwipeZone: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: 24,
+    backgroundColor: 'transparent',
+  },
   errorContainer: {
     flex: 1,
     alignItems: 'center',

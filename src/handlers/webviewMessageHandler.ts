@@ -43,6 +43,65 @@ const handleWebViewMessage = async (
           console.error('FCM Token error:', error);
         }
         break;
+
+      // 웹 토글이 "켜기"를 시도할 때 호출: OS 알림 권한을 요청/확인하고 결과를 돌려준다.
+      // (미허용 사용자는 웹에서 토글 ON을 막고 설정으로 유도하기 위함)
+      case 'requestNotificationPermission':
+        try {
+          if (Platform.OS === 'ios') {
+            await messaging().registerDeviceForRemoteMessages();
+          }
+          const status = await messaging().requestPermission();
+          const granted =
+            status === messaging.AuthorizationStatus.AUTHORIZED ||
+            status === messaging.AuthorizationStatus.PROVISIONAL;
+          let token: string | null = null;
+          if (granted) {
+            token = await messaging().getToken();
+          }
+          webViewRef.current?.postMessage(
+            JSON.stringify({ type: 'notification_permission_result', granted, token }),
+          );
+        } catch (error) {
+          console.log('requestNotificationPermission error:', error);
+          webViewRef.current?.postMessage(
+            JSON.stringify({ type: 'notification_permission_result', granted: false, token: null }),
+          );
+        }
+        break;
+
+      // 알림 설정 화면 진입 시 호출: 시스템 프롬프트 없이 현재 권한 상태만 확인.
+      case 'checkNotificationPermission':
+        try {
+          const status = await messaging().hasPermission();
+          const granted =
+            status === messaging.AuthorizationStatus.AUTHORIZED ||
+            status === messaging.AuthorizationStatus.PROVISIONAL;
+          let token: string | null = null;
+          if (granted) {
+            try {
+              token = await messaging().getToken();
+            } catch (e) {
+              token = null;
+            }
+          }
+          webViewRef.current?.postMessage(
+            JSON.stringify({ type: 'notification_permission_status', granted, token }),
+          );
+        } catch (error) {
+          console.log('checkNotificationPermission error:', error);
+          webViewRef.current?.postMessage(
+            JSON.stringify({ type: 'notification_permission_status', granted: false, token: null }),
+          );
+        }
+        break;
+
+      // 권한이 거부된 경우 사용자를 앱 설정 화면으로 보낸다 (iOS는 한 번 거부 후 재프롬프트 불가).
+      case 'openAppSettings':
+        Linking.openSettings().catch(err =>
+          console.log('설정 열기 실패:', err),
+        );
+        break;
       case 'launchGoogleAuth':
         signInWithGoogle(webViewRef);
         break;
