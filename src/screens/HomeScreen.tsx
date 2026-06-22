@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder } from 'react-native';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder, useColorScheme } from 'react-native';
 import WebView from 'react-native-webview';
+import RNBootSplash from 'react-native-bootsplash';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
 import DeviceInfo from 'react-native-device-info';
@@ -17,11 +18,40 @@ const APP_USER_AGENT = `HeyVoca ${APP_PLATFORM_LABEL}/${APP_VERSION} (build ${AP
 
 
 
+// 웹 신호 없이 스플래시가 영구 유지되는 최대 대기 시간 (ms)
+const BOOTSPLASH_TIMEOUT_MS = 8000;
+
+const SPLASH_BG_LIGHT = '#FFEEFA';
+const SPLASH_BG_DARK = '#242424';
+
 const HomeScreen = () => {
   const webViewRef = useRef<any>(null);
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
   const { setWebViewRef } = useNavigation();
+
+  const scheme = useColorScheme();
+  const splashBg = scheme === 'dark' ? SPLASH_BG_DARK : SPLASH_BG_LIGHT;
+
+  // 중복 hide 방지 가드: 한 번만 실행되도록 보장
+  const splashHiddenRef = useRef(false);
+
+  const hideBootSplash = useCallback(() => {
+    if (splashHiddenRef.current) return;
+    splashHiddenRef.current = true;
+    RNBootSplash.hide({ fade: true });
+  }, []);
+
+  // 안전장치: 8초 타임아웃 — 웹 신호/onLoadEnd 없이도 스플래시가 남지 않도록 강제 hide
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!splashHiddenRef.current) {
+        console.warn('[BootSplash] 타임아웃: 웹 신호 없이 강제 hide');
+        hideBootSplash();
+      }
+    }, BOOTSPLASH_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [hideBootSplash]);
 
   // webViewRef를 NavigationContext에 설정
   useEffect(() => {
@@ -128,15 +158,15 @@ const HomeScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: splashBg }]}>
       <StatusBar
-        barStyle={'dark-content'}
+        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={'transparent'}
         translucent={true}
         hidden={false}
       />
       {/* 웹뷰 레이아웃: 절대 좌표로 위치 고정 및 바닥(bottom) 조정 */}
-      <View style={[styles.webviewWrapper, { bottom: Platform.OS === 'ios' ? keyboardHeight : 0 }]}>
+      <View style={[styles.webviewWrapper, { backgroundColor: splashBg, bottom: Platform.OS === 'ios' ? keyboardHeight : 0 }]}>
         <WebView
           source={{ uri: FRONT_URL }}
           ref={webViewRef}
@@ -147,10 +177,15 @@ const HomeScreen = () => {
           scalesPageToFit={false}
           scrollEnabled={false}
           userAgent={APP_USER_AGENT}
-          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp)}
+          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp, hideBootSplash)}
+          // onLoadEnd 폴백 제거: SPA에서 React 페인트 전에 발생해 흰 화면을 유발하는 주범.
+          // 부트스플래시 hide는 webSplashReady 수신(1순위) 또는 타임아웃(유일한 안전장치)만 사용.
           javaScriptEnabled={true}
           webviewDebuggingEnabled={true}
           hideKeyboardAccessoryView={true}
+          // iOS WKWebView가 로드 중 그리는 불투명 흰 배경을 투명하게 만들어
+          // 뒤의 컨테이너 테마색(splashBg)이 비치도록 한다.
+          opaque={false}
           injectedJavaScript={`
             (function() {
               document.documentElement.style.setProperty('--status-bar-height', '${statusBarHeight}px');
@@ -160,7 +195,7 @@ const HomeScreen = () => {
               };
             })();
           `}
-          style={styles.webview}
+          style={[styles.webview, { backgroundColor: splashBg }]}
         />
         {/* iOS 좌측 엣지 스와이프 백 감지 영역 (안드로이드는 하드웨어 백 사용) */}
         {Platform.OS === 'ios' && (
@@ -172,13 +207,13 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'black' }, // 배경을 검은색으로 설정
+  // 배경색은 splashBg 인라인 style로 동적 적용 (라이트 #FFEEFA / 다크 #242424)
+  container: { flex: 1 },
   webviewWrapper: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'red', // 디버깅용: 빨간색 배경
   },
   webview: { flex: 1 },
   edgeSwipeZone: {

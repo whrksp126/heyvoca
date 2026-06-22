@@ -11,11 +11,14 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2BAD51B5C626513B1B3F68BA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */; };
+		A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9B3E75ADAAF6416C9B021F18 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A25B70B470D044439994207D /* Colors.xcassets */; };
 		B57327972E8C0DF700CF59F3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B57327962E8C0DF700CF59F3 /* StoreKit.framework */; };
 		B5AC77F52F5A17940072A6AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5AC77F42F5A17940072A6AD /* GoogleService-Info.plist */; };
 		F7973FE5E49F45C08483C780 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 78EC8998474F4CF580164ECE /* BootSplash.storyboard */; };
+		B07A1D2E3F4A5B6C7D8E9F01 /* BootSplashDark.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +30,10 @@
 		5709B34CF0A7D63546082F79 /* Pods-heyvoca.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-heyvoca.release.xcconfig"; path = "Target Support Files/Pods-heyvoca/Pods-heyvoca.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-heyvoca.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-heyvoca.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = heyvoca/AppDelegate.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppThemeModule.swift; path = heyvoca/AppThemeModule.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppThemeModule.m; path = heyvoca/AppThemeModule.m; sourceTree = "<group>"; };
 		78EC8998474F4CF580164ECE /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = heyvoca/BootSplash.storyboard; sourceTree = "<group>"; };
+		B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplashDark.storyboard; path = heyvoca/BootSplashDark.storyboard; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = heyvoca/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A25B70B470D044439994207D /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = heyvoca/Colors.xcassets; sourceTree = "<group>"; };
 		B57327962E8C0DF700CF59F3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -57,10 +63,13 @@
 				B5C63F352F14CD54008B2F96 /* heyvoca.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */,
+				A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				78EC8998474F4CF580164ECE /* BootSplash.storyboard */,
+				B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */,
 				A25B70B470D044439994207D /* Colors.xcassets */,
 			);
 			name = heyvoca;
@@ -180,6 +189,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				2BAD51B5C626513B1B3F68BA /* PrivacyInfo.xcprivacy in Resources */,
 				F7973FE5E49F45C08483C780 /* BootSplash.storyboard in Resources */,
+				B07A1D2E3F4A5B6C7D8E9F01 /* BootSplashDark.storyboard in Resources */,
 				9B3E75ADAAF6416C9B021F18 /* Colors.xcassets in Resources */,
 				B5AC77F52F5A17940072A6AD /* GoogleService-Info.plist in Resources */,
 			);
@@ -281,6 +291,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */,
+				A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,7 +306,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = heyvoca/heyvoca.entitlements;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = BB8GGQPRRX;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = heyvoca/Info.plist;
@@ -304,7 +316,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -325,7 +337,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = heyvoca/heyvoca.entitlements;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = BB8GGQPRRX;
 				INFOPLIST_FILE = heyvoca/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = heyvoca;
@@ -334,7 +346,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.3;
+				MARKETING_VERSION = 1.0.4;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

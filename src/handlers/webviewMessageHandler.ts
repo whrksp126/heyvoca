@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Vibration, Platform, StatusBar, Linking } from 'react-native';
+import { Alert, Vibration, Platform, StatusBar, Linking, Appearance, NativeModules } from 'react-native';
 import Toast from 'react-native-toast-message';
 // import Tts from 'react-native-tts';
 import { signInWithGoogle, signOutWithGoogle, getGoogleSheetAccessToken } from '../oauth/googleAuth';
@@ -13,6 +13,7 @@ const handleWebViewMessage = async (
   event: { nativeEvent: { data: string } },
   webViewRef: React.RefObject<any>,
   handleExitApp: () => void,
+  hideBootSplash?: () => void,
 ) => {
   try {
     const messageData = JSON.parse(event.nativeEvent.data);
@@ -148,6 +149,27 @@ const handleWebViewMessage = async (
 
       case 'setStatusBarStyle':
         StatusBar.setBarStyle(messageData.style, true);
+        break;
+
+      case 'setNativeTheme': {
+        // 웹 localStorage 기준 앱 테마를 네이티브에 동기화한다.
+        // (a) 즉시 적용: RN Appearance API로 현재 세션 컬러 스킴 전환
+        // (b) 영속화: iOS UserDefaults에 저장 → 다음 실행 시 AppDelegate가 읽어 window 스타일 재정의
+        const theme = messageData.props?.theme as 'dark' | 'light' | undefined;
+        if (theme === 'dark' || theme === 'light') {
+          Appearance.setColorScheme(theme);
+          if (Platform.OS === 'ios') {
+            NativeModules.AppThemeModule?.setTheme(theme);
+          }
+          console.log('[NativeTheme] 테마 설정:', theme);
+        }
+        break;
+      }
+
+      case 'webSplashReady':
+        // 웹이 자체 스플래시를 그릴 준비가 됐음을 알림 → 네이티브 부트스플래시 숨김
+        console.log('[BootSplash] webSplashReady 수신 → hide');
+        hideBootSplash?.();
         break;
 
       case 'closeApp':
