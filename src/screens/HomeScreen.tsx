@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder, useColorScheme } from 'react-native';
+import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder, useColorScheme, AppState, AppStateStatus } from 'react-native';
 import WebView from 'react-native-webview';
+import CookieManager from '@react-native-cookies/cookies';
 import RNBootSplash from 'react-native-bootsplash';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
@@ -57,6 +58,28 @@ const HomeScreen = () => {
   useEffect(() => {
     setWebViewRef(webViewRef);
   }, [setWebViewRef]);
+
+  // Android: 앱이 백그라운드/비활성 전환 시 CookieManager.flush()로 쿠키를 디스크에 강제 기록.
+  // (Android CookieManager는 영속 스토리지를 갖지만 flush 타이밍이 불확실해
+  //  강제 종료 직전에 refresh_token 쿠키가 유실될 수 있음.)
+  // iOS는 sharedCookiesEnabled prop으로 WKWebView 쿠키가 NSHTTPCookieStorage(디스크)에
+  // 자동 동기화되므로 별도 flush 불필요.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const handleAppStateChange = async (nextState: AppStateStatus) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        try {
+          await CookieManager.flush();
+        } catch (e) {
+          // flush 실패는 무시 — 쿠키 유실 가능성이 남지만 앱 동작에는 영향 없음
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, []);
 
   // 키보드 높이 상태 관리
   const [keyboardHeight, setKeyboardHeight] = React.useState(0);
@@ -172,6 +195,9 @@ const HomeScreen = () => {
           ref={webViewRef}
           bounces={false}
           overScrollMode="never"
+          // iOS: WKWebView 쿠키를 NSHTTPCookieStorage(디스크 영속)와 공유.
+          // 콜드 스타트 후에도 HttpOnly refresh_token 쿠키가 복원되어 자동 갱신이 동작함.
+          sharedCookiesEnabled={true}
           contentInsetAdjustmentBehavior="never"
           automaticallyAdjustContentInsets={false}
           scalesPageToFit={false}
