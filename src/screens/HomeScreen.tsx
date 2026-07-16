@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder, useColorScheme, AppState, AppStateStatus } from 'react-native';
+import { StyleSheet, StatusBar, BackHandler, View, Keyboard, Platform, Text, PanResponder, AppState, AppStateStatus, useColorScheme } from 'react-native';
 import WebView from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import RNBootSplash from 'react-native-bootsplash';
@@ -22,6 +22,9 @@ const APP_USER_AGENT = `HeyVoca ${APP_PLATFORM_LABEL}/${APP_VERSION} (build ${AP
 // 웹 신호 없이 스플래시가 영구 유지되는 최대 대기 시간 (ms)
 const BOOTSPLASH_TIMEOUT_MS = 8000;
 
+// 부트스플래시~WebView 첫 신호(webSplashReady) 수신 전 구간의 배경은 시스템·앱 다크모드와
+// 무관하게 항상 라이트(브랜드 컬러)로 고정한다 (③ 요구사항, 유지).
+// WebView 로드 완료(webLoaded=true) 이후에는 아래 SPLASH_BG_DARK로 전환해 앱 다크모드를 따른다.
 const SPLASH_BG_LIGHT = '#FFEEFA';
 const SPLASH_BG_DARK = '#242424';
 
@@ -31,8 +34,17 @@ const HomeScreen = () => {
   const statusBarHeight = insets.top;
   const { setWebViewRef } = useNavigation();
 
+  // scheme은 시스템 다크모드가 아니라 웹이 setNativeTheme으로 보낸 앱 테마를 반영한다.
+  // (webviewMessageHandler의 'setNativeTheme' 케이스가 Appearance.setColorScheme(theme)을
+  //  호출해 이 훅의 반환값을 즉시 덮어쓰기 때문 — 시스템 설정과 무관하게 앱 자체 테마를 따름)
   const scheme = useColorScheme();
-  const splashBg = scheme === 'dark' ? SPLASH_BG_DARK : SPLASH_BG_LIGHT;
+
+  // WebView가 첫 페인트를 마치고 'webSplashReady'를 보내기 전까지는 항상 라이트 고정(③),
+  // 그 이후부터는 현재 앱 테마(scheme)를 따르는 배경으로 전환한다.
+  const [webLoaded, setWebLoaded] = React.useState(false);
+  const splashBg = webLoaded
+    ? (scheme === 'dark' ? SPLASH_BG_DARK : SPLASH_BG_LIGHT)
+    : SPLASH_BG_LIGHT;
 
   // 중복 hide 방지 가드: 한 번만 실행되도록 보장
   const splashHiddenRef = useRef(false);
@@ -40,6 +52,9 @@ const HomeScreen = () => {
   const hideBootSplash = useCallback(() => {
     if (splashHiddenRef.current) return;
     splashHiddenRef.current = true;
+    // 부트스플래시가 걷히는 시점(webSplashReady 수신 또는 타임아웃 폴백)을 기준으로
+    // "로딩 전 라이트 고정 / 로딩 후 테마 추종" 단계를 전환한다.
+    setWebLoaded(true);
     RNBootSplash.hide({ fade: true });
   }, []);
 
@@ -120,6 +135,28 @@ const HomeScreen = () => {
     `);
   }, [keyboardHeight]);
 
+  // iOS: WKWebView 내부 <input>에 포커스했을 때 뜨는 소프트 키보드가 앱 다크모드를 따르도록
+  // 문서의 CSS `color-scheme`을 앱 테마(scheme)에 맞춰 갱신한다.
+  //
+  // react-native-webview는 keyboardAppearance/overrideUserInterfaceStyle 류의 prop을 지원하지
+  // 않는다(라이브러리 자체 조사 결과 없음). 또한 WKWebView 인스턴스에 직접
+  // overrideUserInterfaceStyle을 걸면 트레이트가 하위로 전파되어 페이지의
+  // `prefers-color-scheme` 미디어쿼리까지 앱 테마 값으로 강제돼버려, AppDelegate.swift에
+  // 이미 남겨둔 경고("system 테마가 한 값에 고정되는 피드백 루프")가 그대로 재발한다.
+  // 반면 CSS `color-scheme` 프로퍼티는 스크롤바/폼 컨트롤/키보드 등 OS가 직접 그리는 UI의
+  // 배색만 바꿀 뿐 `prefers-color-scheme` 값 자체에는 영향을 주지 않으므로, 이 갱신만으로도
+  // 웹의 "system" 테마 감지 로직을 건드리지 않고 키보드 배색만 좁게 고칠 수 있다.
+  useEffect(() => {
+    if (!webViewRef.current) return;
+    const colorScheme = scheme === 'dark' ? 'dark' : 'light';
+    webViewRef.current.injectJavaScript(`
+      (function() {
+        document.documentElement.style.setProperty('color-scheme', '${colorScheme}');
+      })();
+      true;
+    `);
+  }, [scheme]);
+
   useEffect(() => {
     const backAction = () => {
       if (webViewRef.current) {
@@ -183,7 +220,9 @@ const HomeScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: splashBg }]}>
       <StatusBar
-        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
+        // 로딩 전(라이트 고정 구간)은 dark-content, 로딩 후 다크 배경 전환 시 light-content.
+        // 웹이 'setStatusBarStyle' 메시지로 이후 다시 덮어쓸 수 있음(webviewMessageHandler 참고).
+        barStyle={splashBg === SPLASH_BG_DARK ? 'light-content' : 'dark-content'}
         backgroundColor={'transparent'}
         translucent={true}
         hidden={false}
@@ -216,6 +255,9 @@ const HomeScreen = () => {
             (function() {
               document.documentElement.style.setProperty('--status-bar-height', '${statusBarHeight}px');
               document.documentElement.style.setProperty('--safe-area-bottom', '${insets.bottom}px');
+              // 최초 로드 시점의 앱 테마로 색상 스킴을 선반영 — iOS 키보드가 잠깐이라도
+              // 라이트로 뜨는 첫 프레임 깜빡임 방지(이후 테마 변경은 아래 [scheme] useEffect가 갱신).
+              document.documentElement.style.setProperty('color-scheme', '${scheme === 'dark' ? 'dark' : 'light'}');
               window.alert = function(message) {
                 window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'alert', message: message }));
               };
@@ -233,7 +275,7 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // 배경색은 splashBg 인라인 style로 동적 적용 (라이트 #FFEEFA / 다크 #242424)
+  // 배경색은 splashBg 인라인 style로 적용 — 로딩 전(#FFEEFA 고정) / 로딩 후(테마 추종) 2단계
   container: { flex: 1 },
   webviewWrapper: {
     position: 'absolute',

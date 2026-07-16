@@ -182,4 +182,9 @@ dependencies {
     
     // OpenIAP Google library for react-native-iap v14+
     implementation "io.github.hyochan.openiap:openiap-google:1.2.6"
+
+    // MainApplication.onCreate에서 FirebaseApp.initializeApp(this)를 직접 호출하기 위해
+    // firebase-common을 앱 모듈 컴파일 classpath에 노출(RNFB의 BOM 버전과 일치).
+    implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
+    implementation "com.google.firebase:firebase-common"
 }
