@@ -248,6 +248,10 @@ const HomeScreen = () => {
           javaScriptEnabled={true}
           webviewDebuggingEnabled={true}
           hideKeyboardAccessoryView={true}
+          // TTS 자동재생(집중 반복 학습 등 사용자 탭 없이 재생되는 흐름)이 iOS WKWebView의
+          // 기본 autoplay 정책(user action 필요)에 막혀 무음+즉시 스킵되던 문제 해결.
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback={true}
           // iOS WKWebView가 로드 중 그리는 불투명 흰 배경을 투명하게 만들어
           // 뒤의 컨테이너 테마색(splashBg)이 비치도록 한다.
           opaque={false}
