@@ -32,7 +32,7 @@ const HomeScreen = () => {
   const webViewRef = useRef<any>(null);
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
-  const { setWebViewRef } = useNavigation();
+  const { setWebViewRef, openChatStudy } = useNavigation();
 
   // scheme은 시스템 다크모드가 아니라 웹이 setNativeTheme으로 보낸 앱 테마를 반영한다.
   // (webviewMessageHandler의 'setNativeTheme' 케이스가 Appearance.setColorScheme(theme)을
@@ -242,7 +242,7 @@ const HomeScreen = () => {
           scalesPageToFit={false}
           scrollEnabled={false}
           userAgent={APP_USER_AGENT}
-          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp, hideBootSplash)}
+          onMessage={event => handleWebViewMessage(event, webViewRef, handleExitApp, hideBootSplash, openChatStudy)}
           // onLoadEnd 폴백 제거: SPA에서 React 페인트 전에 발생해 흰 화면을 유발하는 주범.
           // 부트스플래시 hide는 webSplashReady 수신(1순위) 또는 타임아웃(유일한 안전장치)만 사용.
           javaScriptEnabled={true}

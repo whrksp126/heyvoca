@@ -10,8 +10,45 @@ export const IconCamera = ({ width, height }: { width?: string, height?: string 
   )
 
 // 뒤로가기 아이콘
-export const IconBack = ({ width, height }: { width?: string, height?: string }) => (   
+export const IconBack = ({ width, height }: { width?: string, height?: string }) => (
     <Svg width={width} height={height} viewBox="0 0 9 17" fill="none">
         <Path d="M8.78122 15.2198C8.8509 15.2895 8.90617 15.3722 8.94388 15.4632C8.9816 15.5543 9.00101 15.6519 9.00101 15.7504C9.00101 15.849 8.9816 15.9465 8.94388 16.0376C8.90617 16.1286 8.8509 16.2114 8.78122 16.281C8.71153 16.3507 8.62881 16.406 8.53776 16.4437C8.44672 16.4814 8.34914 16.5008 8.25059 16.5008C8.15204 16.5008 8.05446 16.4814 7.96342 16.4437C7.87237 16.406 7.78965 16.3507 7.71996 16.281L0.219965 8.78104C0.150232 8.71139 0.0949136 8.62867 0.0571704 8.53762C0.0194272 8.44657 0 8.34898 0 8.25042C0 8.15186 0.0194272 8.05426 0.0571704 7.96321C0.0949136 7.87216 0.150232 7.78945 0.219965 7.71979L7.71996 0.219792C7.8607 0.0790615 8.05157 -3.92322e-09 8.25059 0C8.44961 3.92322e-09 8.64048 0.0790615 8.78122 0.219792C8.92195 0.360523 9.00101 0.551394 9.00101 0.750417C9.00101 0.94944 8.92195 1.14031 8.78122 1.28104L1.8109 8.25042L8.78122 15.2198Z" fill="#CCCCCC"/>
+    </Svg>
+  )
+
+// 뒤로가기 화살표(색상 지정 가능) — 채팅 학습 헤더용
+export const IconChevronLeft = ({ width = 20, height = 20, color = '#111111' }: { width?: number, height?: number, color?: string }) => (
+    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M15 18L9 12L15 6" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  )
+
+// 닫기(X) 아이콘
+export const IconClose = ({ width = 20, height = 20, color = '#111111' }: { width?: number, height?: number, color?: string }) => (
+    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M6 6L18 18M18 6L6 18" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  )
+
+// 스피커(발음 재생) 아이콘
+export const IconSpeaker = ({ width = 20, height = 20, color = '#FF70D4' }: { width?: number, height?: number, color?: string }) => (
+    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M4 9V15H8L13 19V5L8 9H4Z" fill={color}/>
+        <Path d="M16.5 8.5C17.5 9.5 18 10.7 18 12C18 13.3 17.5 14.5 16.5 15.5" stroke={color} strokeWidth={1.8} strokeLinecap="round"/>
+        <Path d="M19 6C20.6 7.6 21.5 9.7 21.5 12C21.5 14.3 20.6 16.4 19 18" stroke={color} strokeWidth={1.8} strokeLinecap="round"/>
+    </Svg>
+  )
+
+// 정답 체크 아이콘
+export const IconCheck = ({ width = 16, height = 16, color = '#ffffff' }: { width?: number, height?: number, color?: string }) => (
+    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M5 13L10 18L19 7" stroke={color} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"/>
+    </Svg>
+  )
+
+// 오답 X 아이콘
+export const IconWrong = ({ width = 16, height = 16, color = '#ffffff' }: { width?: number, height?: number, color?: string }) => (
+    <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M6 6L18 18M18 6L6 18" stroke={color} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round"/>
     </Svg>
   )

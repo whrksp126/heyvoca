@@ -14,6 +14,7 @@ const handleWebViewMessage = async (
   webViewRef: React.RefObject<any>,
   handleExitApp: () => void,
   hideBootSplash?: () => void,
+  openChatStudy?: (params?: any) => void,
 ) => {
   try {
     const messageData = JSON.parse(event.nativeEvent.data);
@@ -174,6 +175,13 @@ const handleWebViewMessage = async (
 
       case 'closeApp':
         handleExitApp();
+        break;
+
+      // 웹의 "채팅으로 학습" 진입점 → 네이티브 채팅 학습 오버레이(ChatStudyScreen)를 띄운다.
+      // 웹은 launchChatStudy 타입으로 보낸다(openChatStudy는 하위호환 별칭).
+      case 'launchChatStudy':
+      case 'openChatStudy':
+        openChatStudy?.(messageData.props);
         break;
 
       case 'openUrl': {

@@ -2,13 +2,43 @@ import React from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { NavigationProvider } from './src/contexts/NavigationContext';
+import { NavigationProvider, useNavigation } from './src/contexts/NavigationContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import messaging from '@react-native-firebase/messaging';
 
 import "./global.css";
 
 function Main() {
+  const { openChatStudy } = useNavigation();
+  // openChatStudy는 매 렌더 새로 생성되므로 ref로 최신값을 참조해
+  // 알림 리스너를 마운트 시 1회만 등록한다.
+  const openChatStudyRef = React.useRef(openChatStudy);
+  openChatStudyRef.current = openChatStudy;
+
+  React.useEffect(() => {
+    // 알림 탭 → 채팅 학습 진입. 백엔드가 data={screen:'chatStudy', ...}로 보낸다.
+    const handleNotif = (remoteMessage: any) => {
+      if (remoteMessage?.data?.screen === 'chatStudy') {
+        openChatStudyRef.current?.(remoteMessage.data || {});
+      }
+    };
+    let unsubscribe: (() => void) | undefined;
+    try {
+      // 백그라운드(앱 살아있음)에서 알림 탭
+      unsubscribe = messaging().onNotificationOpenedApp(handleNotif);
+      // 콜드 스타트(앱 완전 종료 상태)에서 알림 탭으로 실행된 경우
+      messaging()
+        .getInitialNotification()
+        .then(remoteMessage => {
+          if (remoteMessage) handleNotif(remoteMessage);
+        })
+        .catch(() => {});
+    } catch (e) {
+      console.warn('[FCM] 알림 클릭 핸들러 등록 실패:', (e as Error)?.message);
+    }
+    return () => unsubscribe?.();
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
