@@ -21,7 +21,7 @@
     "build:android-aab": "cd android && cross-env ENVFILE=.env ./gradlew bundleRelease",
     "build:android-clean": "cd android && ./gradlew clean",
     "build:ios-archive": "cd ios && xcodebuild -workspace heyvoca.xcworkspace -scheme heyvoca -configuration Release -destination generic/platform=iOS -archivePath build/heyvoca.xcarchive archive",
-    "build:ios-ipa": "cd ios && xcodebuild -exportArchive -archivePath build/heyvoca.xcarchive -exportPath build/ipa -exportOptionsPlist exportOptions.plist",
+    "build:ios-ipa": "cd ios && xcodebuild -exportArchive -archivePath build/heyvoca.xcarchive -exportPath build/ipa -exportOptionsPlist exportOptions-auto.plist",
     "build:ios-clean": "cd ios && xcodebuild clean"
   },
   "dependencies": {

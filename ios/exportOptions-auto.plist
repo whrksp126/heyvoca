@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  exportOptions-auto.plist — xcodebuild -exportArchive 용.
+
+  ⚠ signingStyle 은 반드시 manual 이다. automatic(클라우드 서명)은 같은 ASC 키로도
+    "No signing certificate iOS Distribution found" 로 막힌다(CodingPT 에서 실측).
+    인증서·프로파일은 heyvoca_service/scripts/store/ios-signing.sh 가 REST API 로 준비한다.
+  ⚠ signingCertificate / provisioningProfiles 값은 ios-signing.sh 출력과 정확히 같아야 한다.
+-->
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>app-store-connect</string>
+    <key>teamID</key>
+    <string>BB8GGQPRRX</string>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>signingCertificate</key>
+    <string>iPhone Distribution: GeonHo Jo (BB8GGQPRRX)</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.ghmate.heyvoca</key>
+        <string>HeyVoca AppStore Auto</string>
+    </dict>
+    <key>uploadSymbols</key>
+    <true/>
+    <key>compileBitcode</key>
+    <false/>
+</dict>
+</plist>
