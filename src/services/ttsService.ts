@@ -34,7 +34,7 @@ const sfxPlayScript = (uri: string) =>
 export const resolveTtsUrl = async (
   webViewRef: RefObject<any> | null,
   text: string,
-  language: 'en' | 'ko' = 'en',
+  language: 'en' | 'ko' | 'ja' = 'en',
 ): Promise<string | undefined> => {
   const norm = (text || '').trim();
   if (!norm) return undefined;
@@ -56,7 +56,7 @@ export const resolveTtsUrl = async (
 export const playWordAudio = async (
   webViewRef: RefObject<any> | null,
   word: string,
-  language: 'en' | 'ko' = 'en',
+  language: 'en' | 'ko' | 'ja' = 'en',
 ): Promise<void> => {
   lastWebViewRef = webViewRef;
   try {

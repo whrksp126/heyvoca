@@ -356,9 +356,9 @@ const ChatStudyScreen: React.FC<ChatStudyScreenProps> = ({ onClose }) => {
   // 단어 발음 재생 + 해당 스피커를 재생 상태(핑크/fill/ripple)로 표시.
   // WebView 재생은 완료 콜백이 없어, 단어 길이에 비례한 시간 후 idle로 되돌린다.
   const speakWord = useCallback(
-    (msgId: string, word: string) => {
+    (msgId: string, word: string, language: 'en' | 'ja' = 'en') => {
       setSpeakingId(msgId);
-      playWordAudio(webViewRef, word, 'en');
+      playWordAudio(webViewRef, word, language);
       if (speakingTimerRef.current) clearTimeout(speakingTimerRef.current);
       const ms = Math.max(900, Math.min(2500, 600 + word.length * 90));
       speakingTimerRef.current = setTimeout(() => {
@@ -511,7 +511,7 @@ const ChatStudyScreen: React.FC<ChatStudyScreenProps> = ({ onClose }) => {
     );
     // 질문이 실제로 등장한 시점부터 응답 시간 측정 + 발음 자동재생
     questionStartTimeRef.current = Date.now();
-    speakWord(qMsgId, q.word);
+    speakWord(qMsgId, q.word, q.language ?? 'en');
   }, [finishSession, sendMascot, speakWord]);
 
   // ── 답변 선택 처리 ────────────────────────────────────────────
@@ -625,6 +625,24 @@ const ChatStudyScreen: React.FC<ChatStudyScreenProps> = ({ onClose }) => {
     try {
       const data = await fetchChatSession(webViewRef, 50);
       removeMessage('loading');
+
+      if (data.available === false) {
+        await clearChatStudySnapshot();
+        await sendMascot({
+          id: 'lang-unsupported',
+          role: 'mascot',
+          kind: 'text',
+          text: '이 언어는 앱 업데이트 후 지원돼요',
+        });
+        await sendMascot({
+          id: 'lang-unsupported-btn',
+          role: 'mascot',
+          kind: 'buttons',
+          text: '',
+          buttons: [{ label: '닫기', onPress: onClose }],
+        }, { typingMs: 400 });
+        return;
+      }
 
       if (!data.session_id || !data.questions || data.questions.length === 0) {
         await clearChatStudySnapshot();
@@ -818,7 +836,7 @@ const ChatStudyScreen: React.FC<ChatStudyScreenProps> = ({ onClose }) => {
                 <Text className={`${T.bubbleText} text-[22px] font-bold mr-2`}>{question.word}</Text>
                 <SpeakerButton
                   playing={speakingId === msg.id}
-                  onPress={() => speakWord(msg.id, question.word)}
+                  onPress={() => speakWord(msg.id, question.word, question.language ?? 'en')}
                   isDark={isDark}
                 />
               </View>

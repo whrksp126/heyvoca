@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { appAsyncStore, getCookieFromAsyncStorage } from '../utils/asyncStorage';
+import { getAppRequestHeaders } from '../utils/appMeta';
 
 import Config from 'react-native-config';
 const BACK_URL = Config.BACK_URL;
@@ -140,6 +141,7 @@ const verifyPurchaseWithServer = async (purchase: Purchase, retryCount = 0): Pro
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
+        ...getAppRequestHeaders(),
       },
       body: JSON.stringify(receiptData),
     });

@@ -8,7 +8,7 @@ import {
   ImagePickerResponse,
   Asset,
 } from 'react-native-image-picker';
-import { recognizeTextFromImage } from '../components/ocrHelper';
+import { recognizeTextFromImage, OcrLang } from '../components/ocrHelper';
 
 type Source = 'camera' | 'library';
 
@@ -54,6 +54,7 @@ const handlePickerResponse = async (
   response: ImagePickerResponse,
   webViewRef: React.RefObject<any>,
   source: Source,
+  lang: OcrLang,
 ) => {
   // [진단] iOS 카메라 무반응 원인 추적: 콜백이 실제로 도달했는지 + 응답 내용 확인
   console.log(
@@ -95,7 +96,7 @@ const handlePickerResponse = async (
   }
 
   try {
-    const words = await recognizeTextFromImage(asset.uri);
+    const words = await recognizeTextFromImage(asset.uri, lang);
 
     const mime = asset.type || 'image/jpeg';
     const imageBase64 = asset.base64
@@ -129,6 +130,7 @@ const handlePickerResponse = async (
 export const launchImagePicker = (
   source: Source,
   webViewRef: React.RefObject<any>,
+  lang: OcrLang = 'en',
 ) => {
   if (!webViewRef?.current) {
     console.warn('⚠️ webViewRef가 없어 ImagePicker를 열 수 없습니다.');
@@ -136,10 +138,10 @@ export const launchImagePicker = (
   }
 
   // [진단] iOS 카메라 무반응 추적: 호출 자체가 실행되는지 확인
-  console.log(`📷 [ImagePicker] launchImagePicker 호출 source=${source} (${Platform.OS})`);
+  console.log(`📷 [ImagePicker] launchImagePicker 호출 source=${source} lang=${lang} (${Platform.OS})`);
 
   const cb = (response: ImagePickerResponse) => {
-    handlePickerResponse(response, webViewRef, source);
+    handlePickerResponse(response, webViewRef, source, lang);
   };
 
   if (source === 'camera') {

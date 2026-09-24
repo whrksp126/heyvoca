@@ -205,7 +205,9 @@ const handleWebViewMessage = async (
           );
           break;
         }
-        launchImagePicker(source, webViewRef);
+        const langProp = messageData.props?.lang;
+        const lang = langProp === 'ja' ? 'ja' : 'en';
+        launchImagePicker(source, webViewRef, lang);
         break;
       }
 

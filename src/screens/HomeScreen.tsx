@@ -5,17 +5,12 @@ import CookieManager from '@react-native-cookies/cookies';
 import RNBootSplash from 'react-native-bootsplash';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
-import DeviceInfo from 'react-native-device-info';
+import { APP_USER_AGENT } from '../utils/appMeta';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '../contexts/NavigationContext';
 
 const FRONT_URL = Config.APP_ENV === 'local' && Platform.OS === 'android' ? Config.ANDROID_FRONT_URL : Config.FRONT_URL;
-
-const APP_VERSION = DeviceInfo.getVersion();
-const APP_BUILD = DeviceInfo.getBuildNumber();
-const APP_PLATFORM_LABEL = Platform.OS === 'ios' ? 'iOS' : 'Android';
-const APP_USER_AGENT = `HeyVoca ${APP_PLATFORM_LABEL}/${APP_VERSION} (build ${APP_BUILD})`;
 
 
 

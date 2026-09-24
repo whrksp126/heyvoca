@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 import Config from 'react-native-config';
 import { getCookieFromAsyncStorage } from '../utils/asyncStorage';
+import { getAppRequestHeaders } from '../utils/appMeta';
 
 const BACK_URL = Config.BACK_URL;
 
@@ -73,6 +74,7 @@ export const authorizedFetch = async (
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
+      ...getAppRequestHeaders(),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });

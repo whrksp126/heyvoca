@@ -13,6 +13,7 @@ export interface ChatQuestion {
   user_voca_id: number;
   user_voca_book_id: string | null;
   word: string;
+  language?: 'en' | 'ja';
   meanings: string[];
   examples: any[];
   options: string[];
@@ -26,6 +27,9 @@ export interface ChatSessionResponse {
   session_id: string | null;
   composition: Record<string, number>;
   questions: ChatQuestion[];
+  // 학습 언어(ja 등)가 현재 앱 버전에서 지원되지 않을 때 서버가 세션 대신 반환.
+  available?: boolean;
+  reason?: string;
 }
 
 export interface ComboPayload {
