@@ -49,6 +49,12 @@ target 'heyvoca' do
       target.build_configurations.each do |config|
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
         config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        # Xcode 26.4+/27 clang 에서 fmt 11.0.2 의 FMT_STRING consteval 이 컴파일 실패.
+        # fmt 헤더는 FMT_USE_CONSTEVAL 을 무조건 재정의하므로 -D 로는 못 끈다 →
+        # fmt 타깃만 C++17 로 빌드해 헤더 자체 분기(FMT_CPLUSPLUS < 201709L)로 consteval 비활성화.
+        if target.name == 'fmt'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
       end
     end
   end
