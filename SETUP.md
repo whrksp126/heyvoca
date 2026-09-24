@@ -44,7 +44,6 @@ cd ios && pod install && cd ..
 |------|------|
 | `.env.local` | 로컬 개발용 서버 URL, Google OAuth 클라이언트 ID 등 |
 | `.env.dev` | dev 서버 환경 |
-| `.env.stg` | stg 서버 환경 |
 
 > 로컬 IP 확인: `ipconfig getifaddr en0`
 
@@ -95,11 +94,9 @@ npm run ios:local
 ```bash
 # Android
 npm run android:dev
-npm run android:stg
 
 # iOS
 npm run ios:dev
-npm run ios:stg
 ```
 
 ### 네이티브 패키지 추가 후
