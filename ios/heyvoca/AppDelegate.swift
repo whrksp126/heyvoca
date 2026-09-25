@@ -12,6 +12,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
 
   func application(
     _ application: UIApplication,
@@ -26,24 +27,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
+    self.launchOptions = launchOptions
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    // 개발 모드 번들 다운로드 중 흰 화면 방지 — 루트 윈도우 배경을 항상 라이트(브랜드 컬러)로 고정.
-    // 부트스플래시/초기 로딩 구간은 시스템·앱 다크모드와 무관하게 항상 라이트로 보여야 하므로
-    // 저장된 appTheme(다크)을 더 이상 참조하지 않는다. 앱 내부 다크모드 기능 자체는
-    // JS 로드 후 WebView/Appearance 쪽에서 그대로 동작하며 영향받지 않는다.
-    // overrideUserInterfaceStyle은 쓰지 않는다(WebView의 prefers-color-scheme을 강제해
-    // 'system' 테마가 한 값에 고정되는 피드백 루프를 유발하므로).
-    window?.backgroundColor = UIColor(red: 1.0, green: 0.933, blue: 0.980, alpha: 1.0) // #FFEEFA
-
-    factory.startReactNative(
-      withModuleName: "heyvoca",
-      in: window,
-      launchOptions: launchOptions
-    )
+    // window 생성과 React Native 부팅은 UIScene 생명주기로 이동했다(SceneDelegate.swift 참고).
+    // iOS 27 SDK로 빌드한 앱은 UIScene을 채택하지 않으면 런치 즉시 종료된다(TN3187).
 
     return true
+  }
+
+  // 프로세스에 씬을 붙일 때 사용할 구성을 지정 — UIScene 생명주기 채택의 핵심 진입점.
+  func application(
+    _ application: UIApplication,
+    configurationForConnecting connectingSceneSession: UISceneSession,
+    options: UIScene.ConnectionOptions
+  ) -> UISceneConfiguration {
+    let configuration = UISceneConfiguration(
+      name: "Default Configuration",
+      sessionRole: connectingSceneSession.role
+    )
+    configuration.delegateClass = SceneDelegate.self
+    return configuration
   }
 
   // 포그라운드 상태에서도 알림 배너와 소리가 뜨도록 설정

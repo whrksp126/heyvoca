@@ -18,6 +18,7 @@
 		B07A1D2E3F4A5B6C7D8E9F01 /* BootSplashDark.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */; };
 		B57327972E8C0DF700CF59F3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B57327962E8C0DF700CF59F3 /* StoreKit.framework */; };
 		B5AC77F52F5A17940072A6AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5AC77F42F5A17940072A6AD /* GoogleService-Info.plist */; };
+		F0A39CCD81D7C9AE05D2396A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91C6F09DBA314EDD8F2FF48 /* SceneDelegate.swift */; };
 		F7973FE5E49F45C08483C780 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 78EC8998474F4CF580164ECE /* BootSplash.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +41,7 @@
 		B57327992E8C124900CF59F3 /* heyvoca.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = heyvoca.storekit; sourceTree = "<group>"; };
 		B5AC77F42F5A17940072A6AD /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B5C63F352F14CD54008B2F96 /* heyvoca.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = heyvoca.entitlements; path = heyvoca/heyvoca.entitlements; sourceTree = "<group>"; };
+		C91C6F09DBA314EDD8F2FF48 /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = heyvoca/SceneDelegate.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -71,6 +73,7 @@
 				78EC8998474F4CF580164ECE /* BootSplash.storyboard */,
 				B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */,
 				A25B70B470D044439994207D /* Colors.xcassets */,
+				C91C6F09DBA314EDD8F2FF48 /* SceneDelegate.swift */,
 			);
 			name = heyvoca;
 			sourceTree = "<group>";
@@ -293,6 +296,7 @@
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */,
 				A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */,
+				F0A39CCD81D7C9AE05D2396A /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
