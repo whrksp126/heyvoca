@@ -2655,7 +2655,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReactNativeHapticFeedback (2.3.3):
+  - RNReactNativeHapticFeedback (3.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3204,7 +3204,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 9324ff2c759cfca3262406e6f76fe0eb2f7e8bc5
   RNMLKitTextRecognition: 02e17c2274c9c98aeaab68be51f6921746ffc8e1
   RNPermissions: d139a73fb2755b57a34678df07c33e6d7b5e9969
-  RNReactNativeHapticFeedback: 7ab0232cc103ac7d928635410fa0df7b11c53ada
+  RNReactNativeHapticFeedback: 215969fdb29b39d68ee603fef96214da2bca628f
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 25f036f462ef25438df35722728891fd04fdff2d
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748

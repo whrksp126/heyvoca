@@ -7,6 +7,7 @@ import { signInWithApple } from '../oauth/appleAuth';
 import { executePurchase } from '../handlers/iapHandler';
 import { saveCookieToAsyncStorage } from '../utils/asyncStorage';
 import { launchImagePicker } from './imagePickerHandler';
+import { playHapticPattern, warmUpHapticEngine, getHapticCaps } from '../utils/hapticPatternPlayer';
 import messaging from '@react-native-firebase/messaging';
 
 const handleWebViewMessage = async (
@@ -211,8 +212,27 @@ const handleWebViewMessage = async (
         break;
       }
 
+      // 웹이 정의한 패턴을 그대로 재생 (1.1.2~). props: {events, delayMs?(0~500), cancelPrevious?}
+      case 'haptic_pattern': {
+        const { events, delayMs, cancelPrevious } = messageData.props || {};
+        playHapticPattern(events, { delayMs, cancelPrevious });
+        break;
+      }
+
+      // 학습 화면 진입 시 호출하면 iOS 햅틱 엔진을 미리 올려 첫 진동 지연을 없앤다 (1.1.2~).
+      case 'haptic_warmup':
+        warmUpHapticEngine();
+        break;
+
+      // 기기 햅틱 능력 조회 (1.1.2~). 회신: {type:'haptic_caps', data:{platform, apiLevel, hasAmplitudeControl, supportsPrebaked}}
+      case 'haptic_caps': {
+        const data = await getHapticCaps();
+        webViewRef.current?.postMessage(JSON.stringify({ type: 'haptic_caps', data }));
+        break;
+      }
+
       case 'vibrate': {
-        const HAPTIC_ENABLED = false; // 햅틱 일시 비활성화 토글: true로 바꾸면 다시 켜짐
+        const HAPTIC_ENABLED = true; // 햅틱 토글: false로 바꾸면 'vibrate' 가 꺼짐 (haptic_pattern 은 별개)
         if (!HAPTIC_ENABLED) break;
         const { duration, cancel, type: hapticType } = messageData.props || {};
 

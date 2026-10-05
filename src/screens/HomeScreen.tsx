@@ -5,6 +5,7 @@ import CookieManager from '@react-native-cookies/cookies';
 import RNBootSplash from 'react-native-bootsplash';
 import handleWebViewMessage from '../handlers/webviewMessageHandler';
 import Config from 'react-native-config';
+import { warmUpHapticEngine } from '../utils/hapticPatternPlayer';
 import { APP_USER_AGENT } from '../utils/appMeta';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -89,6 +90,15 @@ const HomeScreen = () => {
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription.remove();
+  }, []);
+
+  // iOS 햅틱 엔진 예열: 진입 시 + 포그라운드 복귀 시 (유휴 자동 종료 대비)
+  useEffect(() => {
+    warmUpHapticEngine();
+    const sub = AppState.addEventListener('change', next => {
+      if (next === 'active') warmUpHapticEngine();
+    });
+    return () => sub.remove();
   }, []);
 
   // 키보드 높이 상태 관리
