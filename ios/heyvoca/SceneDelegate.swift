@@ -1,4 +1,5 @@
 import UIKit
+import UserNotifications
 import React_RCTAppDelegate
 
 // Xcode 27(iOS 27 SDK)부터 UIScene 생명주기 채택이 필수다 — 채택하지 않으면
@@ -47,5 +48,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     self.window = window
     appDelegate.window = window
+  }
+
+  // 앱 실행·포그라운드 진입 시 아이콘 배지를 0으로 되돌리고 알림센터에 쌓인 우리 알림을 지운다.
+  // 푸시 payload 의 badge=1 은 '1로 설정'이라 누가 0으로 돌려주지 않으면 앱을 열어도 남아 있었다.
+  func sceneDidBecomeActive(_ scene: UIScene) {
+    let center = UNUserNotificationCenter.current()
+    if #available(iOS 16.0, *) {
+      center.setBadgeCount(0) { _ in }
+    } else {
+      UIApplication.shared.applicationIconBadgeNumber = 0
+    }
+    center.removeAllDeliveredNotifications()
   }
 }
