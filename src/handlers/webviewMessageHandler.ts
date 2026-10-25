@@ -9,6 +9,7 @@ import { saveCookieToAsyncStorage } from '../utils/asyncStorage';
 import { launchImagePicker } from './imagePickerHandler';
 import { playHapticPattern, warmUpHapticEngine, getHapticCaps } from '../utils/hapticPatternPlayer';
 import messaging from '@react-native-firebase/messaging';
+import { handleListenSessionStart, handleListenControl } from '../services/listenPlayer';
 
 const handleWebViewMessage = async (
   event: { nativeEvent: { data: string } },
@@ -296,8 +297,20 @@ const handleWebViewMessage = async (
         break;
       }
 
+      // 농장 산책하기 네이티브 재생 (1.1.4~). 계약은 services/listenPlayer.ts 머리말 참고.
+      case 'listen_session_start':
+        handleListenSessionStart(messageData.props, webViewRef);
+        break;
+      case 'listen_control':
+        handleListenControl(messageData.props, webViewRef);
+        break;
+
       default:
         console.log('알 수 없는 메시지 타입:', messageData.type);
+        // 모르는 메시지라고 정직하게 회신한다(1.1.4~) — 웹 nativeBridge.requestNative 가 무응답 대기 대신 즉시 폴백한다.
+        webViewRef.current?.postMessage(
+          JSON.stringify({ type: 'unsupported_message', requestType: messageData.type }),
+        );
     }
   } catch (error) {
     console.error('Error parsing message:', error);

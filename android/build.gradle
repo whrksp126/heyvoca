@@ -20,3 +20,10 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// react-native-track-player(농장 산책 네이티브 재생)가 쓰는 kotlinaudio 는 JitPack 에만 있다.
+allprojects {
+    repositories {
+        maven { url "https://www.jitpack.io" }
+    }
+}
