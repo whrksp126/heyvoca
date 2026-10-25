@@ -71,3 +71,16 @@
 -keepattributes *Annotation*
 -keepattributes SourceFile,LineNumberTable
 -keep public class * extends java.lang.Exception
+
+# ─── react-native-track-player 알림 리플렉션(patches/ MusicService.applyClassicNotificationStyle) ─
+# 필드 이름으로 찾으므로 minify 가 이름을 바꾸면 조용히 미디어 카드형으로 돌아간다.
+-keepclassmembers class com.google.android.exoplayer2.ui.PlayerNotificationManager {
+    private android.support.v4.media.session.MediaSessionCompat$Token mediaSessionToken;
+    private final java.lang.String channelId;
+}
+-keepclassmembers class com.doublesymmetry.kotlinaudio.notification.NotificationManager {
+    private com.google.android.exoplayer2.ui.PlayerNotificationManager internalNotificationManager;
+}
+-keepclassmembers class com.google.android.exoplayer2.ui.PlayerNotificationManager {
+    private boolean useStopAction;
+}

@@ -92,7 +92,13 @@ export const authorizedFetch = async (
 
   const json = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error((json && (json.message || json.error)) || `요청 실패 (${response.status})`);
+    // status·body 를 붙여 둔다 — 호출처가 409(합친 음성의 누락 클립) 등을 구분해 처리한다
+    const err: Error & { status?: number; body?: any } = new Error(
+      (json && (json.message || json.error)) || `요청 실패 (${response.status})`,
+    );
+    err.status = response.status;
+    err.body = json;
+    throw err;
   }
   return json;
 };

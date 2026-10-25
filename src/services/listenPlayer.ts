@@ -1,4 +1,5 @@
 import type { RefObject } from 'react';
+import { Platform } from 'react-native';
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
@@ -24,7 +25,12 @@ import { authorizedFetch } from './apiClient';
  * 앱 → 웹
  *   listen_state { sessionId, slideIndex, itemId, itemIndex, playing, ended }
  *
- * 큐 구성: 한 슬라이드 = 웹이 정한 순서대로의 TTS mp3 + 줄 사이 무음(0.3초), 슬라이드 끝은 0.6초 무음.
+ *   (listen_state 에 closed: true 가 붙으면 알림의 닫기(X)로 끝난 것 — lost 와 같이 웹 재생으로 돌아간다)
+ *
+ * 큐 구성(1.1.5~): 한 슬라이드 = 트랙 1개. 서버 /tts/combine 이 웹이 정한 순서대로의 클립(반복 포함) +
+ * 줄 사이 무음(0.3초) + 끝 무음(0.6초)을 mp3 한 개로 합쳐 준다 — 잠금화면·알림 진행바가 단어 하나 전체 길이로
+ * 한 번에 흐른다. 지금 읽는 줄은 응답의 클립 시각(clips[].start_ms)과 재생 위치로 정해 웹에 알린다.
+ * 합치기를 못 하면(구버전 서버·실패) 그 슬라이드만 예전 방식(줄 mp3 + 무음 트랙 여러 개)으로 넣는다.
  * 슬라이드는 "지금 + 2장"까지만 미리 큐에 붙인다 — presigned URL 은 /tts/resolve 가 Redis 에 캐싱한 것을
  * 돌려주므로 남은 수명이 5분까지 짧을 수 있어, 한꺼번에 받아 두면 긴 세션 뒤쪽이 만료된다.
  * 재생 직전에 URL 의 X-Amz-Date/Expires 로 만료를 보고 다시 받는다(재생 오류 시에도 1회 재시도).
@@ -55,14 +61,23 @@ interface Session {
   albumTitle: string;
   loadedUpTo: number; // 큐에 붙인 마지막 슬라이드(0부터 연속)
   ended: boolean;
+  combineOff: boolean; // 서버가 /tts/combine 을 모른다(구버전) — 이 세션은 줄 단위 큐로만
+}
+
+interface Span {
+  start_ms: number;
+  end_ms: number;
 }
 
 // RNTP 큐와 1:1 로 맞춘 사본 — 슬라이드 경계·만료를 여기서 계산한다.
 interface QItem {
   slide: number;
-  clip: number | null; // null = 무음
+  kind: 'combined' | 'clip' | 'silence';
+  clip: number | null; // kind 'clip' 일 때 줄 번호
   url: string | number;
   expiresAt: number; // ms, 무음은 Infinity
+  spans?: Span[]; // kind 'combined' — 줄마다 합친 파일 안의 시각
+  durationMs?: number;
   retried?: boolean;
 }
 
@@ -71,6 +86,9 @@ const SILENCE_SLIDE_END = require('../assets/audio/silence_600ms.mp3');
 const ARTWORK = require('../assets/images/AppLogo.png');
 
 const LOOKAHEAD_SLIDES = 2;
+const COMBINE_GAP_MS = 300;
+const COMBINE_TAIL_MS = 600;
+const PROGRESS_INTERVAL_SEC = 0.25;
 const EXPIRY_MARGIN_MS = 2 * 60 * 1000;
 
 let webViewRef: RefObject<any> | null = null;
@@ -81,6 +99,8 @@ let listenersAttached = false;
 // 우리가 직접 skip 한 직후의 트랙 변경 이벤트는 "자연 진행"이 아니다(반복 재생 판정에서 제외).
 let programmaticSkip = false;
 let lastSlideIndex = -1;
+// 합친 트랙 재생 중 마지막으로 웹에 알린 줄 — 진행 이벤트마다 보내지 않고 줄이 바뀔 때만 보낸다
+let lastEmittedClip: number | null = null;
 
 // 큐 조작은 이벤트·웹 명령·잠금화면 명령이 동시에 올 수 있어 한 줄로 세운다.
 let chain: Promise<unknown> = Promise.resolve();
@@ -127,6 +147,37 @@ const resolveClipUrl = async (clip: Clip): Promise<string | null> => {
   }
 };
 
+// 슬라이드 하나를 mp3 한 개로 합친 것. 캐시에 없는 줄이 있으면(409) 그 줄을 /tts/resolve 로 만들고 1번 더 묻는다.
+const fetchCombined = async (slideIndex: number): Promise<{ url: string; spans: Span[]; durationMs: number } | null> => {
+  const s = session;
+  const clips = s?.slides[slideIndex]?.clips || [];
+  if (!s || s.combineOff || clips.length === 0) return null;
+  const body = {
+    clips: clips.map(c => ({ text: c.text, language: c.lang, voice: c.voice })),
+    gap_ms: COMBINE_GAP_MS,
+    tail_ms: COMBINE_TAIL_MS,
+  };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await authorizedFetch('/tts/combine', { method: 'POST', body, webViewRef });
+      if (!res?.url || !Array.isArray(res?.clips)) return null;
+      return { url: res.url, spans: res.clips, durationMs: Number(res.duration_ms) || 0 };
+    } catch (e: any) {
+      const missing: unknown = e?.body?.missing;
+      if (e?.status === 409 && attempt === 0 && Array.isArray(missing)) {
+        await Promise.all(
+          missing.map(i => (clips[Number(i)] ? resolveClipUrl({ ...clips[Number(i)], url: undefined }) : null)),
+        );
+        continue;
+      }
+      if (e?.status === 404 || e?.status === 405) s.combineOff = true;
+      console.warn('[Listen] combine 실패 → 줄 단위 재생:', slideIndex, e?.message || e);
+      return null;
+    }
+  }
+  return null;
+};
+
 const trackFor = (item: QItem): AddTrack => {
   const s = session!;
   const slide = s.slides[item.slide] || {};
@@ -136,11 +187,24 @@ const trackFor = (item: QItem): AddTrack => {
     artist: slide.subtitle || '',
     album: s.albumTitle,
     artwork: ARTWORK,
+    ...(item.durationMs ? { duration: item.durationMs / 1000 } : {}),
   };
 };
 
 // 슬라이드 하나의 큐 항목(줄 + 무음). 받지 못한 줄은 건너뛰고, 다 실패해도 무음 1개로 슬라이드 자리는 지킨다.
 const buildSlideItems = async (slideIndex: number): Promise<QItem[]> => {
+  const combined = await fetchCombined(slideIndex);
+  if (combined) {
+    return [{
+      slide: slideIndex,
+      kind: 'combined',
+      clip: null,
+      url: combined.url,
+      expiresAt: expiryOf(combined.url),
+      spans: combined.spans,
+      durationMs: combined.durationMs,
+    }];
+  }
   const clips = session?.slides[slideIndex]?.clips || [];
   const urls = await Promise.all(
     clips.map(c => (isFresh(c.url) ? Promise.resolve(c.url as string) : resolveClipUrl(c))),
@@ -148,11 +212,11 @@ const buildSlideItems = async (slideIndex: number): Promise<QItem[]> => {
   const items: QItem[] = [];
   urls.forEach((url, ci) => {
     if (!url) return;
-    items.push({ slide: slideIndex, clip: ci, url, expiresAt: expiryOf(url) });
-    items.push({ slide: slideIndex, clip: null, url: SILENCE_GAP, expiresAt: Infinity });
+    items.push({ slide: slideIndex, kind: 'clip', clip: ci, url, expiresAt: expiryOf(url) });
+    items.push({ slide: slideIndex, kind: 'silence', clip: null, url: SILENCE_GAP, expiresAt: Infinity });
   });
   if (items.length > 0) items.pop();
-  items.push({ slide: slideIndex, clip: null, url: SILENCE_SLIDE_END, expiresAt: Infinity });
+  items.push({ slide: slideIndex, kind: 'silence', clip: null, url: SILENCE_SLIDE_END, expiresAt: Infinity });
   return items;
 };
 
@@ -176,10 +240,15 @@ const slideStart = (slide: number) => queue.findIndex(q => q.slide === slide);
 const refreshItem = async (i: number, activeIndex: number | undefined) => {
   const item = queue[i];
   const s = session;
-  if (!s || !item || item.clip === null) return;
-  const clip = s.slides[item.slide]?.clips?.[item.clip];
-  if (!clip) return;
-  const url = await resolveClipUrl({ ...clip, url: undefined });
+  if (!s || !item || item.kind === 'silence') return;
+  let url: string | null = null;
+  if (item.kind === 'combined') {
+    url = (await fetchCombined(item.slide))?.url ?? null;
+  } else {
+    const clip = item.clip !== null ? s.slides[item.slide]?.clips?.[item.clip] : undefined;
+    if (!clip) return;
+    url = await resolveClipUrl({ ...clip, url: undefined });
+  }
   if (!url || session !== s) return;
   const fresh: QItem = { ...item, url, expiresAt: expiryOf(url) };
   queue[i] = fresh;
@@ -211,13 +280,32 @@ const currentItem = async (): Promise<{ index: number; item: QItem } | null> => 
   return { index, item: queue[index] };
 };
 
+// 합친 트랙에서 position(초) 에 읽고 있는 줄. 줄 사이 무음 동안은 직전 줄을 유지한다.
+const clipAt = (spans: Span[] | undefined, position: number): number | null => {
+  if (!spans || spans.length === 0) return null;
+  const ms = position * 1000;
+  let found = 0;
+  for (let i = 0; i < spans.length; i++) {
+    if (spans[i].start_ms <= ms) found = i;
+    else break;
+  }
+  return found;
+};
+
 const emitState = async () => {
   const s = session;
   if (!s) return;
   const cur = await currentItem();
   let itemId: string | null = null;
   let itemIndex: number | null = null;
-  if (cur) {
+  lastEmittedClip = null;
+  if (cur && cur.item.kind === 'combined') {
+    const ci = clipAt(cur.item.spans, (await TrackPlayer.getProgress()).position);
+    const clip = ci !== null ? s.slides[cur.item.slide]?.clips?.[ci] : undefined;
+    itemId = clip?.itemId ?? null;
+    itemIndex = clip?.itemIndex ?? null;
+    lastEmittedClip = ci;
+  } else if (cur) {
     // 줄 사이 무음 동안은 직전 줄의 강조를 유지한다
     for (let i = cur.index; i >= 0 && queue[i].slide === cur.item.slide; i--) {
       const c = queue[i].clip;
@@ -258,6 +346,18 @@ const seekSlide = async (slide: number, play: boolean) => {
   loadUpTo(target + LOOKAHEAD_SLIDES).catch(() => {});
 };
 
+// 알림의 닫기(X) — 재생을 끝내고 알림을 없앤 뒤 웹에 알린다(웹은 lost 처리로 웹 재생 상태로 돌아간다).
+const closeSession = async () => {
+  const s = session;
+  if (!s) return;
+  session = null;
+  queue = [];
+  lastSlideIndex = -1;
+  lastEmittedClip = null;
+  if (isSetup) await TrackPlayer.reset();
+  post('listen_state', { sessionId: s.id, lost: true, closed: true, playing: false, ended: false });
+};
+
 const ensureSetup = async () => {
   if (!isSetup) {
     try {
@@ -275,10 +375,17 @@ const ensureSetup = async () => {
   await TrackPlayer.updateOptions({
     android: {
       appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-    },
+      // patches/react-native-track-player — 미디어 카드 대신 일반 알림 목록 + 상태바 아이콘(MusicService 주석 참조)
+      classicNotification: true,
+    } as any,
     capabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext, Capability.SkipToPrevious, Capability.Stop],
-    notificationCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext, Capability.SkipToPrevious],
+    // Android 알림의 마지막 버튼 = 닫기(X). iOS Now Playing 에는 닫기 버튼이 없다(시스템 관례).
+    notificationCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext, Capability.SkipToPrevious, Capability.Stop],
     compactCapabilities: [Capability.SkipToPrevious, Capability.Play, Capability.SkipToNext],
+    // 앱 res/drawable 의 리소스 이름 — 상태바용 흰색 실루엣 아이콘, 닫기 X
+    icon: { uri: 'ic_stat_heyvoca' } as any,
+    stopIcon: { uri: 'ic_listen_close' } as any,
+    progressUpdateEventInterval: PROGRESS_INTERVAL_SEC,
   });
   attachListenPlayerEvents();
 };
@@ -314,6 +421,13 @@ export const attachListenPlayerEvents = () => {
 
   TrackPlayer.addEventListener(Event.PlaybackPlayWhenReadyChanged, () => serial(emitState));
 
+  // 합친 트랙 안에서 줄이 바뀌면 웹 강조를 옮긴다
+  TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, e => {
+    const item = queue[e.track];
+    if (!session || !item || item.kind !== 'combined') return;
+    if (clipAt(item.spans, e.position) !== lastEmittedClip) serial(emitState);
+  });
+
   TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () =>
     serial(async () => {
       const s = session;
@@ -338,7 +452,7 @@ export const attachListenPlayerEvents = () => {
     serial(async () => {
       const cur = await currentItem();
       if (!session || !cur) return;
-      if (!cur.item.retried && cur.item.clip !== null) {
+      if (!cur.item.retried && cur.item.kind !== 'silence') {
         // 대개 presigned URL 만료(403) — 새로 받아 같은 자리에서 다시 재생
         await refreshItem(cur.index, cur.index);
         if (queue[cur.index]) queue[cur.index].retried = true;
@@ -354,7 +468,10 @@ export const attachListenPlayerEvents = () => {
 
   TrackPlayer.addEventListener(Event.RemotePlay, () => handleListenControl({ action: 'play' }));
   TrackPlayer.addEventListener(Event.RemotePause, () => handleListenControl({ action: 'pause' }));
-  TrackPlayer.addEventListener(Event.RemoteStop, () => handleListenControl({ action: 'pause' }));
+  // Android 알림의 닫기(X)가 Stop 으로 온다. iOS 에서는 (이어폰 등에서 드물게 오는) Stop 을 일시정지로 둔다.
+  TrackPlayer.addEventListener(Event.RemoteStop, () =>
+    Platform.OS === 'android' ? serial(closeSession) : handleListenControl({ action: 'pause' }),
+  );
   TrackPlayer.addEventListener(Event.RemoteNext, () => remoteSkip(1));
   TrackPlayer.addEventListener(Event.RemotePrevious, () => remoteSkip(-1));
 };
@@ -387,6 +504,7 @@ export const handleListenSessionStart = (props: any, ref: RefObject<any>) => {
         albumTitle: props?.albumTitle || '농장 산책하기',
         loadedUpTo: -1,
         ended: false,
+        combineOff: false,
       };
       const start = Math.max(0, Math.min(Number(props?.startIndex) || 0, slides.length - 1));
       await seekSlide(start, props?.autoplay !== false);
@@ -409,6 +527,7 @@ export const handleListenControl = (props: any, ref?: RefObject<any>) => {
       session = null;
       queue = [];
       lastSlideIndex = -1;
+      lastEmittedClip = null;
       if (isSetup) await TrackPlayer.reset();
       return;
     }
