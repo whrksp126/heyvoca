@@ -23,6 +23,9 @@ const BOOTSPLASH_TIMEOUT_MS = 8000;
 // WebView 로드 완료(webLoaded=true) 이후에는 아래 SPLASH_BG_DARK로 전환해 앱 다크모드를 따른다.
 const SPLASH_BG_LIGHT = '#FFEEFA';
 const SPLASH_BG_DARK = '#242424';
+// Android 내비 바 뒤 띠 색 — 웹 하단 영역과 이어지도록 웹 --layout-white / --layout-black 과 맞춘다.
+const NAV_BAR_BG_LIGHT = '#FFFFFF';
+const NAV_BAR_BG_DARK = '#111111';
 
 const HomeScreen = () => {
   const webViewRef = useRef<any>(null);
@@ -162,6 +165,18 @@ const HomeScreen = () => {
     `);
   }, [scheme]);
 
+  // Android 는 WebView 를 OS 내비 바 위에서 끝낸다.
+  // targetSdk 36 이라 Android 15+ 에서 edge-to-edge 가 강제돼 WebView 가 내비 바 뒤까지 그려지고,
+  // 웹 곳곳(온보딩 하단 CTA 등)이 --safe-area-bottom 을 챙기지 않아 버튼이 내비 바에 깔린다.
+  // 이렇게 하면 노트9(Android 10, edge-to-edge 아님)와 같은 결과가 되고, 구형은 insets.bottom=0 이라 변화 없다.
+  // 키보드가 열려 있으면 내비 바가 키보드에 가려지므로 기존처럼 0 으로 둔다(키보드 위 빈 띠 방지).
+  const androidNavInset = Platform.OS === 'android' && keyboardHeight === 0 ? insets.bottom : 0;
+  // WebView 자체가 내비 바 위에서 끝나므로 Android 는 웹에 하단 여백을 주지 않는다(이중 여백 방지).
+  const webSafeAreaBottom = Platform.OS === 'android' ? 0 : insets.bottom;
+  const navBarBg = webLoaded
+    ? (scheme === 'dark' ? NAV_BAR_BG_DARK : NAV_BAR_BG_LIGHT)
+    : SPLASH_BG_LIGHT;
+
   // safe area insets 가 바뀌면 웹 CSS 변수를 다시 주입한다.
   // injectedJavaScript 는 페이지 로드 시 1회만 실행되므로, Android 15+ edge-to-edge 환경에서
   // 내비 방식 전환(제스처↔3버튼)·회전·멀티윈도우로 insets 가 바뀌면 웹이 옛 값을 계속 써서
@@ -171,11 +186,11 @@ const HomeScreen = () => {
     webViewRef.current.injectJavaScript(`
       (function() {
         document.documentElement.style.setProperty('--status-bar-height', '${insets.top}px');
-        document.documentElement.style.setProperty('--safe-area-bottom', '${insets.bottom}px');
+        document.documentElement.style.setProperty('--safe-area-bottom', '${webSafeAreaBottom}px');
       })();
       true;
     `);
-  }, [insets.top, insets.bottom]);
+  }, [insets.top, webSafeAreaBottom]);
 
   useEffect(() => {
     const backAction = () => {
@@ -247,8 +262,12 @@ const HomeScreen = () => {
         translucent={true}
         hidden={false}
       />
+      {/* Android 내비 바 뒤 띠: 컨테이너 splashBg(라이트 #FFEEFA)가 비치지 않도록 웹 하단색으로 덮는다 */}
+      {androidNavInset > 0 && (
+        <View style={[styles.navBarBand, { height: androidNavInset, backgroundColor: navBarBg }]} />
+      )}
       {/* 웹뷰 레이아웃: 절대 좌표로 위치 고정 및 바닥(bottom) 조정 */}
-      <View style={[styles.webviewWrapper, { backgroundColor: splashBg, bottom: Platform.OS === 'ios' ? keyboardHeight : 0 }]}>
+      <View style={[styles.webviewWrapper, { backgroundColor: splashBg, bottom: Platform.OS === 'ios' ? keyboardHeight : androidNavInset }]}>
         <WebView
           source={{ uri: FRONT_URL }}
           ref={webViewRef}
@@ -278,7 +297,7 @@ const HomeScreen = () => {
           injectedJavaScript={`
             (function() {
               document.documentElement.style.setProperty('--status-bar-height', '${statusBarHeight}px');
-              document.documentElement.style.setProperty('--safe-area-bottom', '${insets.bottom}px');
+              document.documentElement.style.setProperty('--safe-area-bottom', '${webSafeAreaBottom}px');
               // 최초 로드 시점의 앱 테마로 색상 스킴을 선반영 — iOS 키보드가 잠깐이라도
               // 라이트로 뜨는 첫 프레임 깜빡임 방지(이후 테마 변경은 아래 [scheme] useEffect가 갱신).
               document.documentElement.style.setProperty('color-scheme', '${scheme === 'dark' ? 'dark' : 'light'}');
@@ -308,6 +327,12 @@ const styles = StyleSheet.create({
     right: 0,
   },
   webview: { flex: 1 },
+  navBarBand: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   edgeSwipeZone: {
     position: 'absolute',
     top: 0,
