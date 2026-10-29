@@ -162,6 +162,21 @@ const HomeScreen = () => {
     `);
   }, [scheme]);
 
+  // safe area insets 가 바뀌면 웹 CSS 변수를 다시 주입한다.
+  // injectedJavaScript 는 페이지 로드 시 1회만 실행되므로, Android 15+ edge-to-edge 환경에서
+  // 내비 방식 전환(제스처↔3버튼)·회전·멀티윈도우로 insets 가 바뀌면 웹이 옛 값을 계속 써서
+  // 하단 탭바가 OS 내비 바와 겹친다.
+  useEffect(() => {
+    if (!webViewRef.current) return;
+    webViewRef.current.injectJavaScript(`
+      (function() {
+        document.documentElement.style.setProperty('--status-bar-height', '${insets.top}px');
+        document.documentElement.style.setProperty('--safe-area-bottom', '${insets.bottom}px');
+      })();
+      true;
+    `);
+  }, [insets.top, insets.bottom]);
+
   useEffect(() => {
     const backAction = () => {
       if (webViewRef.current) {
