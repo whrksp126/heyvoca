@@ -1,5 +1,5 @@
 import appleAuth from '@invertase/react-native-apple-authentication';
-import { Alert } from 'react-native';
+import { sendOAuthError } from './oauthError';
 
 export const signInWithApple = async (webViewRef: any) => {
     try {
@@ -44,13 +44,17 @@ export const signInWithApple = async (webViewRef: any) => {
                 });
                 webViewRef.current.postMessage(JSON.stringify(data));
             }
+        } else {
+            // 인증 상태가 유효하지 않으면 웹이 로딩에 머물지 않도록 실패를 알린다
+            sendOAuthError(webViewRef, 'apple', 'failed');
         }
     } catch (error: any) {
         if (error.code === appleAuth.Error.CANCELED) {
             // 사용자가 취소한 경우
+            sendOAuthError(webViewRef, 'apple', 'cancelled');
             return;
         }
         console.error('Apple Login Error:', error);
-        Alert.alert('Apple Login Failed', error.message);
+        sendOAuthError(webViewRef, 'apple', 'failed');
     }
 };

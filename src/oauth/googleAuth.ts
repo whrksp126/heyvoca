@@ -6,7 +6,7 @@ const GOOGLE_CLIENT_WEB_ID = Config.GOOGLE_CLIENT_WEB_ID;
 import { Platform } from 'react-native';
 const FRONT_URL = Config.APP_ENV === 'local' && Platform.OS === 'android' ? Config.ANDROID_FRONT_URL : Config.FRONT_URL;
 
-import { Alert } from 'react-native';
+import { sendOAuthError } from './oauthError';
 import { appAsyncStore, saveAppAsyncStorage, clearAppAsyncStorage, updateAppAsyncStorage } from '../utils/asyncStorage';
 
 let GoogleSignin;
@@ -60,7 +60,7 @@ export const signInWithGoogle = async (webViewRef: any) => {
       // webViewRef.current.injectJavaScript(script);
     }
   } catch (error) {
-    handleSignInError(error);
+    handleSignInError(error, webViewRef);
   }
 };
 
@@ -136,20 +136,10 @@ export const signOutWithGoogle = async (webViewRef: any) => {
   }
 };
 
-export const handleSignInError = (error: any) => {
+export const handleSignInError = (error: any, webViewRef: any) => {
   console.error('전체 에러 객체:', error);
-
-  if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-    Alert.alert('', '사용자가 로그인 흐름을 취소했습니다', [{ text: 'OK' }], { cancelable: false });
-  } else if (error.code === statusCodes.IN_PROGRESS) {
-    Alert.alert('', '로그인 진행 중', [{ text: 'OK' }], { cancelable: false });
-  } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-    Alert.alert('', 'Play 서비스를 사용할 수 없거나 오래되었습니다', [{ text: 'OK' }], { cancelable: false });
-  } else if (error.code === statusCodes.DEVELOPER_ERROR) {
-    Alert.alert('', '로그인에 실패했습니다. 관리자에게 문의하세요.', [{ text: 'OK' }], { cancelable: false });
-  } else {
-    Alert.alert('', `로그인 실패: ${error.message}`, [{ text: 'OK' }], { cancelable: false });
-  }
+  const code = error?.code === statusCodes.SIGN_IN_CANCELLED ? 'cancelled' : 'failed';
+  sendOAuthError(webViewRef, 'google', code);
 };
 
 // // 액세스 토큰 갱신
