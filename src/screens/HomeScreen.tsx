@@ -104,6 +104,18 @@ const HomeScreen = () => {
     return () => sub.remove();
   }, []);
 
+  // 포그라운드 복귀 알림 (1.1.7~): 웹이 일본어 키보드 상태 등을 다시 조회하도록 {type:'appForeground'} 를 보낸다.
+  useEffect(() => {
+    let prev: AppStateStatus = AppState.currentState;
+    const sub = AppState.addEventListener('change', next => {
+      if (next === 'active' && prev !== 'active') {
+        webViewRef.current?.postMessage(JSON.stringify({ type: 'appForeground' }));
+      }
+      prev = next;
+    });
+    return () => sub.remove();
+  }, []);
+
   // 키보드 높이 상태 관리
   const [keyboardHeight, setKeyboardHeight] = React.useState(0);
 

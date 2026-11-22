@@ -13,6 +13,8 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9B3E75ADAAF6416C9B021F18 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A25B70B470D044439994207D /* Colors.xcassets */; };
+		A1B2C3D4E5F60011A1B2C3D4 /* KeyboardInfoModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */; };
+		A1B2C3D4E5F60013A1B2C3D4 /* KeyboardInfoModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */; };
 		A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */; };
 		A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */; };
 		B07A1D2E3F4A5B6C7D8E9F01 /* BootSplashDark.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */; };
@@ -33,6 +35,8 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = heyvoca/AppDelegate.swift; sourceTree = "<group>"; };
 		78EC8998474F4CF580164ECE /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = heyvoca/BootSplash.storyboard; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = heyvoca/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardInfoModule.swift; path = heyvoca/KeyboardInfoModule.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KeyboardInfoModule.m; path = heyvoca/KeyboardInfoModule.m; sourceTree = "<group>"; };
 		A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppThemeModule.swift; path = heyvoca/AppThemeModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppThemeModule.m; path = heyvoca/AppThemeModule.m; sourceTree = "<group>"; };
 		A25B70B470D044439994207D /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = heyvoca/Colors.xcassets; sourceTree = "<group>"; };
@@ -65,6 +69,8 @@
 				B5C63F352F14CD54008B2F96 /* heyvoca.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */,
+				A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */,
 				A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */,
 				A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -294,6 +300,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				A1B2C3D4E5F60011A1B2C3D4 /* KeyboardInfoModule.swift in Sources */,
+				A1B2C3D4E5F60013A1B2C3D4 /* KeyboardInfoModule.m in Sources */,
 				A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */,
 				A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */,
 				F0A39CCD81D7C9AE05D2396A /* SceneDelegate.swift in Sources */,
@@ -310,7 +318,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = heyvoca/heyvoca.entitlements;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = BB8GGQPRRX;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = heyvoca/Info.plist;
@@ -320,7 +328,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.1.7;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -341,7 +349,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = heyvoca/heyvoca.entitlements;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_TEAM = BB8GGQPRRX;
 				INFOPLIST_FILE = heyvoca/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = heyvoca;
@@ -350,7 +358,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.6;
+				MARKETING_VERSION = 1.1.7;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

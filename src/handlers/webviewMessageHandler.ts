@@ -305,6 +305,39 @@ const handleWebViewMessage = async (
         handleListenControl(messageData.props, webViewRef);
         break;
 
+      // 일본어 키보드 감지 (1.1.7~). 회신: {type:'getKeyboardStatus', lang, status:'enabled'|'missing'|'unknown', platform}
+      case 'getKeyboardStatus': {
+        const lang = messageData.lang === 'ja' ? 'ja' : String(messageData.lang || 'ja');
+        let status: 'enabled' | 'missing' | 'unknown' = 'unknown';
+        try {
+          const mod = Platform.OS === 'ios' ? (NativeModules as any).KeyboardInfoModule : (NativeModules as any).KeyboardInfo;
+          const r = await mod?.getStatus(lang);
+          if (r === 'enabled' || r === 'missing') status = r;
+        } catch (e) {
+          status = 'unknown';
+        }
+        webViewRef.current?.postMessage(
+          JSON.stringify({ type: 'getKeyboardStatus', lang, status, platform: Platform.OS === 'ios' ? 'ios' : 'android' }),
+        );
+        break;
+      }
+
+      // 키보드/앱 설정 화면 열기 (1.1.7~). 회신: {type:'openKeyboardSettings', ok, target:'keyboard'|'app'}
+      case 'openKeyboardSettings': {
+        let ok = false;
+        let target: 'keyboard' | 'app' = 'app';
+        try {
+          const mod = Platform.OS === 'ios' ? (NativeModules as any).KeyboardInfoModule : (NativeModules as any).KeyboardInfo;
+          const r = await mod?.openSettings();
+          ok = !!r?.ok;
+          target = r?.target === 'keyboard' ? 'keyboard' : 'app';
+        } catch (e) {
+          ok = false;
+        }
+        webViewRef.current?.postMessage(JSON.stringify({ type: 'openKeyboardSettings', ok, target }));
+        break;
+      }
+
       default:
         console.log('알 수 없는 메시지 타입:', messageData.type);
         // 모르는 메시지라고 정직하게 회신한다(1.1.4~) — 웹 nativeBridge.requestNative 가 무응답 대기 대신 즉시 폴백한다.
