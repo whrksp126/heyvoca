@@ -9,6 +9,7 @@ import { saveCookieToAsyncStorage } from '../utils/asyncStorage';
 import { launchImagePicker } from './imagePickerHandler';
 import { playHapticPattern, warmUpHapticEngine, getHapticCaps } from '../utils/hapticPatternPlayer';
 import messaging from '@react-native-firebase/messaging';
+import analytics from '@react-native-firebase/analytics';
 import { handleListenSessionStart, handleListenControl } from '../services/listenPlayer';
 
 const handleWebViewMessage = async (
@@ -127,6 +128,15 @@ const handleWebViewMessage = async (
         saveCookieToAsyncStorage(name, value, expires);
         console.log('쿠키 동기화됨:', name, value);
         break;
+
+      // 웹이 로그인/로그아웃/탈퇴 시 보냄: { type:'setAnalyticsUserId', userId: '123' | null }
+      case 'setAnalyticsUserId': {
+        const uid = messageData.userId ?? messageData.props?.userId;
+        analytics()
+          .setUserId(uid ? String(uid) : null)
+          .catch(() => {});
+        break;
+      }
 
       case 'log':
         console.log('web log :', messageData.message);

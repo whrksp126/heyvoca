@@ -9,6 +9,9 @@ platform :ios, '15.5'
 # use_modular_headers! <- 전역 설정을 제거하여 핵심 모듈 충돌 방지
 prepare_react_native_project!
 
+# 광고 식별자(IDFA) 미사용 — ATT 불필요
+$RNFirebaseAnalyticsWithoutAdIdSupport = true
+
 # Firebase/Google 관련 모듈에만 선택적으로 적용
 pod 'FirebaseCoreInternal', :modular_headers => true
 pod 'GoogleUtilities', :modular_headers => true

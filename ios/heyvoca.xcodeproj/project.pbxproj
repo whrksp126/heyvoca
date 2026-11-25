@@ -13,10 +13,10 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9B3E75ADAAF6416C9B021F18 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A25B70B470D044439994207D /* Colors.xcassets */; };
-		A1B2C3D4E5F60011A1B2C3D4 /* KeyboardInfoModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */; };
-		A1B2C3D4E5F60013A1B2C3D4 /* KeyboardInfoModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */; };
 		A1B2C3D4E5F60001A1B2C3D4 /* AppThemeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */; };
 		A1B2C3D4E5F60003A1B2C3D4 /* AppThemeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */; };
+		A1B2C3D4E5F60011A1B2C3D4 /* KeyboardInfoModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */; };
+		A1B2C3D4E5F60013A1B2C3D4 /* KeyboardInfoModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */; };
 		B07A1D2E3F4A5B6C7D8E9F01 /* BootSplashDark.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */; };
 		B57327972E8C0DF700CF59F3 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B57327962E8C0DF700CF59F3 /* StoreKit.framework */; };
 		B5AC77F52F5A17940072A6AD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5AC77F42F5A17940072A6AD /* GoogleService-Info.plist */; };
@@ -35,10 +35,10 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = heyvoca/AppDelegate.swift; sourceTree = "<group>"; };
 		78EC8998474F4CF580164ECE /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = heyvoca/BootSplash.storyboard; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = heyvoca/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardInfoModule.swift; path = heyvoca/KeyboardInfoModule.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KeyboardInfoModule.m; path = heyvoca/KeyboardInfoModule.m; sourceTree = "<group>"; };
 		A1B2C3D4E5F60002A1B2C3D4 /* AppThemeModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppThemeModule.swift; path = heyvoca/AppThemeModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60004A1B2C3D4 /* AppThemeModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppThemeModule.m; path = heyvoca/AppThemeModule.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F60012A1B2C3D4 /* KeyboardInfoModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeyboardInfoModule.swift; path = heyvoca/KeyboardInfoModule.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60014A1B2C3D4 /* KeyboardInfoModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KeyboardInfoModule.m; path = heyvoca/KeyboardInfoModule.m; sourceTree = "<group>"; };
 		A25B70B470D044439994207D /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = heyvoca/Colors.xcassets; sourceTree = "<group>"; };
 		B07A1D2E3F4A5B6C7D8E9F02 /* BootSplashDark.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplashDark.storyboard; path = heyvoca/BootSplashDark.storyboard; sourceTree = "<group>"; };
 		B57327962E8C0DF700CF59F3 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
